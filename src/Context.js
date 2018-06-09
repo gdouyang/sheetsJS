@@ -13,7 +13,7 @@ class Context {
     target.height = options.height * 2;
     target.style.width = options.width + "px";
     target.style.height = options.height + "px";
-
+    this.target = target;
     this.ctx = target.getContext("2d");
     this.ctx.scale(2, 2);
 

@@ -1,49 +1,30 @@
-var webpack = require('webpack');
 var path = require('path');
 
 var libraryName = 'sheets';
 var outputFile = libraryName + '.js';
 
-var UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 var env = process.env.WEBPACK_ENV;
 
-var plugins = [], outputFile;
+var outputFile, mode;
 
 if (env === 'build') {
-  plugins.push(new UglifyJsPlugin({ minimize: true }));
   outputFile = libraryName + '.min.js';
+  mode = 'production';
 } else {
   outputFile = libraryName + '.js';
+  mode = 'development';
 }
 
 var config = {
+  mode: mode,
   entry: __dirname + '/src/Sheet.js',
   devtool: 'source-map',
   output: {
     path: __dirname + '/dist',
     filename: outputFile,
     library: libraryName,
-    libraryTarget: 'var'
-  },
-  module: {
-    loaders: [
-      {
-        test: /(\.jsx|\.js)$/,
-        loader: 'babel',
-        exclude: /(node_modules)/
-      },
-      {
-        test: /(\.jsx|\.js)$/,
-        loader: "eslint-loader",
-        exclude: /node_modules/
-      }
-    ]
-  },
-  resolve: {
-    root: path.resolve('./src'),
-    extensions: ['', '.js']
-  },
-  plugins: plugins
+    libraryTarget: 'umd'
+  }
 };
 
 module.exports = config;

@@ -16,8 +16,8 @@ class Sheet {
     Object.assign(this, {
       width: undefined,
       height: undefined,
-      rowCount: 2000,
-      colCount: 500,
+      rowCount: 10,
+      colCount: 5,
     }, options);
 
     this.context = new Context(target, {
@@ -173,7 +173,8 @@ class Sheet {
       }
 
       this.context.drawRect(x, y, width, height, {
-        borderColor: 'blue',
+        borderColor: '#4285f4',
+        fillColor: 'rgba(236, 243, 255, 0.5)',
         borderWidth: 2
       });
     }
@@ -258,6 +259,6 @@ class Sheet {
   }
 }
 
-export default {
-  Sheet: Sheet
+export {
+  Sheet
 };

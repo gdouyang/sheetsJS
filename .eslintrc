@@ -24,6 +24,5 @@
   "parser": "babel-eslint",
   "plugins": [],
   "rules": {
-    // ... lots of lots of rules here
   }
 }
