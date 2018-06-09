@@ -20,7 +20,10 @@ class Sheet {
       colCount: 5,
     }, options);
 
-    this.context = new Context(target, {
+    var canvas = document.createElement("canvas");
+    target.appendChild(canvas)
+
+    this.context = new Context(canvas, {
         onMouseMove: this.mouseMove.bind(this),
         onMouseDown: this.mouseDown.bind(this),
         onMouseUp: this.mouseUp.bind(this),

@@ -1,23 +1,44 @@
 <!DOCTYPE HTML>
 <html>
-  <head>
-    <script type="text/javascript" src="../dist/jquery-3.2.0.min.js"></script>
-    <script type="text/javascript" src="../dist/numeric.min.js"></script>
-    <script type="text/javascript" src="../dist/numeral.min.js"></script>
-    <script type="text/javascript" src="../dist/jstat.min.js"></script>
-    <script type="text/javascript" src="../dist/formula.min.js"></script>
-    <script type="text/javascript" src="../dist/sheets.js"></script>
-    <style>
-	   * { margin:0; padding:0; }
-    </style>
-  </head>
-  <body>
-    <canvas id="canvas" />
-    <script type="text/javascript">
-      var sheet = new sheets.Sheet(document.getElementById("canvas"), {
-        width: 500,
-        height: 400
-      });
-    </script>
-  </body>
+
+<head>
+  <link rel="stylesheet" href="../dist/scrollbar/jquery.scrollbar.css">
+  <script type="text/javascript" src="../dist/jquery-3.2.0.min.js"></script>
+  <script src="../dist/scrollbar/jquery.scrollbar.min.js"></script>
+  <script type="text/javascript" src="../dist/numeric.min.js"></script>
+  <script type="text/javascript" src="../dist/numeral.min.js"></script>
+  <script type="text/javascript" src="../dist/jstat.min.js"></script>
+  <script type="text/javascript" src="../dist/formula.min.js"></script>
+  <script type="text/javascript" src="../dist/sheets.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #sheetsDiv {
+      width: 100px;
+      height: 200px;
+      max-width: 200;
+      max-height: 200px;
+      overflow: scroll;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="sheetsDiv" class="scrollbar-chrome">
+
+  </div>
+  <script type="text/javascript">
+    var sheet = new sheets.Sheet(document.getElementById("sheetsDiv"), {
+      width: 500,
+      height: 400
+    });
+    jQuery(document).ready(function () {
+      jQuery('.scrollbar-chrome').scrollbar();
+    });
+  </script>
+</body>
+
 </html>

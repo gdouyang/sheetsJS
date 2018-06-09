@@ -590,7 +590,8 @@ class Context {
       onMouseDown: (x, y) => {},
       onMouseUp: (x, y) => {},
       onMouseClick: (x, y) => {},
-      onScroll: (dx, dy) => {}
+      onScroll: (dx, dy) => {},
+      useCanvasScroll: false
     }, options);
 
     target.width = options.width * 2;
@@ -637,8 +638,10 @@ class Context {
     };
 
     this.ctx.canvas.onmousewheel = function(e) {
-      options.onScroll(e.deltaX, e.deltaY);
-      e.preventDefault();
+      if(options.useCanvasScroll){
+        options.onScroll(e.deltaX, e.deltaY);
+        e.preventDefault();
+      }
     };
 
     // this.textBufferCanvas = document.createElement('canvas');
@@ -987,7 +990,10 @@ class Sheet {
       colCount: 5,
     }, options);
 
-    this.context = new _Context__WEBPACK_IMPORTED_MODULE_0__["default"](target, {
+    var canvas = document.createElement("canvas");
+    target.appendChild(canvas)
+
+    this.context = new _Context__WEBPACK_IMPORTED_MODULE_0__["default"](canvas, {
         onMouseMove: this.mouseMove.bind(this),
         onMouseDown: this.mouseDown.bind(this),
         onMouseUp: this.mouseUp.bind(this),

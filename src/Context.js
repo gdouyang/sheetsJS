@@ -6,7 +6,8 @@ class Context {
       onMouseDown: (x, y) => {},
       onMouseUp: (x, y) => {},
       onMouseClick: (x, y) => {},
-      onScroll: (dx, dy) => {}
+      onScroll: (dx, dy) => {},
+      useCanvasScroll: false
     }, options);
 
     target.width = options.width * 2;
@@ -53,8 +54,10 @@ class Context {
     };
 
     this.ctx.canvas.onmousewheel = function(e) {
-      options.onScroll(e.deltaX, e.deltaY);
-      e.preventDefault();
+      if(options.useCanvasScroll){
+        options.onScroll(e.deltaX, e.deltaY);
+        e.preventDefault();
+      }
     };
 
     // this.textBufferCanvas = document.createElement('canvas');
