@@ -38,7 +38,7 @@ class Sheet {
     //TODO: allow to fill size of div placed in
     
     //Column headerX
-    this.columnHeaderRow = new ColumnHeaderRow(this, 0, 0, this.rowCount);
+    this.columnHeaderRow = new ColumnHeaderRow(this, 0, 0, this.colCount);
     
     //Data rows
     this.rows = [];

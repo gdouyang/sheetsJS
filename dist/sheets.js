@@ -996,48 +996,11 @@ class ScrollBar {
     // init scrollbars & recalculate sizes
     $.each(s, function (d, scrollx) {
 
-      var scrollToValue = 0;
-
       if (!scrollx.scroll) {
 
         scrollx.scroll = S._getScroll('scroll' + d).addClass('scroll-' + d);
 
         scrollx.scroll.addClass('scroll-element_arrows_visible');
-
-        scrollx.mousewheel = function (event) {
-
-          if (!scrollx.isVisible || (d === 'x' && S.isVerticalScroll(event))) {
-            return true;
-          }
-          if (d === 'y' && !S.isVerticalScroll(event)) {
-            s.x.mousewheel(event);
-            return true;
-          }
-
-          var delta = event.originalEvent.wheelDelta * -1 || event.originalEvent.detail;
-          var maxScrollValue = scrollx.size - scrollx.visible - scrollx.offset;
-
-          if ((delta > 0 && scrollToValue < maxScrollValue) || (delta < 0 && scrollToValue > 0)) {
-            scrollToValue = scrollToValue + delta;
-            if (scrollToValue < 0)
-              scrollToValue = 0;
-            if (scrollToValue > maxScrollValue)
-              scrollToValue = maxScrollValue;
-
-            S.scrollTo = S.scrollTo || {};
-          }
-
-          event.preventDefault();
-          return false;
-        };
-
-        scrollx.scroll
-          .on('MozMousePixelScroll' + namespace, scrollx.mousewheel)
-          .on('mousewheel' + namespace, scrollx.mousewheel)
-          .on('mouseenter' + namespace, function () {
-            // scrollToValue = c[scrollOffset]();
-            console.info('MozMousePixelScroll ...')
-          });
 
         // handle arrows & scroll inner mousedown event
         scrollx.scroll.find('.scroll-arrow, .scroll-element_track')
@@ -1108,11 +1071,13 @@ class ScrollBar {
       $.extend(scrollx, (d == "x") ? {
         "offset": parseInt(Math.abs(sheet.scrollX), 10) || 0,
         "size": sheet.getContentWidth(),
-        "visible": sheet.width
+        "visible": sheet.width,
+        "isBarVisible":true
       } : {
           "offset": parseInt(Math.abs(sheet.scrollY), 10) || 0,
           "size": sheet.getContentHeight(),
-          "visible": sheet.height
+          "visible": sheet.height,
+          "isBarVisible":true
         });
     });
 
@@ -1122,19 +1087,23 @@ class ScrollBar {
       var cssOffset = (d === 'x') ? 'left' : 'top';
       var cssFullSize = (d === 'x') ? 'outerWidth' : 'outerHeight';
       var cssSize = (d === 'x') ? 'width' : 'height';
-      var offset = parseInt(sheet.scrollX, 10) || 0;
+      var offset = Math.abs(parseInt((d === 'x') ? sheet.scrollX : sheet.scrollY, 10) || 0);
 
       var AreaSize = scrollx.size;
       var AreaVisible = scrollx.visible + offset;
+      if (AreaVisible >= AreaSize) {
+        scrollx.isBarVisible = false;
+        scrollx.scroll.bar.hide();
+      } else {
+        var scrollSize = scrollx.scroll.size[cssFullSize]() + (parseInt(scrollx.scroll.size.css(cssOffset), 10) || 0);
 
-      var scrollSize = scrollx.scroll.size[cssFullSize]() + (parseInt(scrollx.scroll.size.css(cssOffset), 10) || 0);
+        scrollx.scrollbarSize = parseInt(scrollSize * AreaVisible / AreaSize, 10);
+        scrollx.scroll.bar.css(cssSize, scrollx.scrollbarSize + 'px');
 
-      scrollx.scrollbarSize = parseInt(scrollSize * AreaVisible / AreaSize, 10);
-      scrollx.scroll.bar.css(cssSize, scrollx.scrollbarSize + 'px');
-
-      scrollx.scrollbarSize = scrollx.scroll.bar[cssFullSize]();
-      scrollx.kx = ((scrollSize - scrollx.scrollbarSize) / (AreaSize - AreaVisible)) || 1;
-      scrollx.maxScrollOffset = AreaSize - AreaVisible;
+        scrollx.scrollbarSize = scrollx.scroll.bar[cssFullSize]();
+        scrollx.kx = ((scrollSize - scrollx.scrollbarSize) / (AreaSize - AreaVisible)) || 1;
+        scrollx.maxScrollOffset = AreaSize - AreaVisible;
+      }
     });
   }
 
@@ -1174,18 +1143,23 @@ class ScrollBar {
     if (offset_ > 0) {
       offset_ = 0;
     }
-    if (d === 'x') {
-      if(this.sheet.getContentWidth() - Math.abs(offset_) < this.sheet.width){
-        offset_ = this.sheet.width - 50 - this.sheet.getContentWidth();
+    var cssOffset = (d === 'x') ? 'left' : 'top';
+    var scrollx = (d === 'x') ? this.scrollx : this.scrolly;
+    if(scrollx.isBarVisible){
+      var absOffset = Math.abs(offset_);
+      if (d === 'x') {
+        if (this.sheet.getContentWidth() - absOffset < this.sheet.width) {
+          offset_ = this.sheet.width - 50 - this.sheet.getContentWidth();
+        }
+        this.sheet.scrollX = offset_;
+      } else if(d === 'y'){
+        if ((this.sheet.getContentHeight() - absOffset) < this.sheet.height) {
+          offset_ = this.sheet.height - 50 - this.sheet.getContentHeight();
+        }
+        this.sheet.scrollY = offset_;
       }
-      this.sheet.scrollX = offset_;
-      this.scrollx.scroll.bar.css('left', Math.abs(sheet.scrollX) * this.scrollx.kx + 'px');
-    } else {
-      if((this.sheet.getContentHeight() - Math.abs(offset_)) < this.sheet.height){
-        offset_ = this.sheet.height - 50 - this.sheet.getContentHeight();
-      }
-      this.sheet.scrollY = offset_;
-      this.scrolly.scroll.bar.css('top', Math.abs(sheet.scrollY) * this.scrolly.kx + 'px');
+      absOffset = Math.abs(offset_);
+      scrollx.scroll.bar.css(cssOffset, absOffset * scrollx.kx + 'px');
     }
   }
 
@@ -1285,7 +1259,7 @@ class Sheet {
     //TODO: allow to fill size of div placed in
     
     //Column headerX
-    this.columnHeaderRow = new _ColumnHeaderRow__WEBPACK_IMPORTED_MODULE_2__["default"](this, 0, 0, this.rowCount);
+    this.columnHeaderRow = new _ColumnHeaderRow__WEBPACK_IMPORTED_MODULE_2__["default"](this, 0, 0, this.colCount);
     
     //Data rows
     this.rows = [];
