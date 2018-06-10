@@ -145,7 +145,7 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
 
     const getIndividualArgValue = (arg) => {
-      // let colAlphaMatch = arg.match(/[A-Z]+/);
+      let colAlphaMatch = arg.match(/[A-Z]+/);
 
       if (/[A-Z]+/.test(arg)) {
         //Cell reference
@@ -164,30 +164,36 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
     };
 
     if (value.indexOf("=") == 0) {
-      let functionName = value.substr(1).split('(')[0];
-      let args = value.substr(1).split('(')[1].replace(')', '').split(',');
-
-      let argValues = [];
-
-      for (let i = 0; i < args.length; i++) {
-        let arg = args[i].trim();
-
-        if (arg.indexOf(":") !== -1) {
-          let rangeIndexes = arg.split(':');
-
-          //TODO: This is not actually a range right now
-          for (let j = 0; j < rangeIndexes.length; j++) {
-            argValues.push(getIndividualArgValue(rangeIndexes[j]));
+      try {
+        let functionName = value.substr(1).split('(')[0];
+        let args = value.substr(1).split('(')[1].replace(')', '').split(',');
+  
+        let argValues = [];
+  
+        for (let i = 0; i < args.length; i++) {
+          let arg = args[i].trim();
+  
+          if (arg.indexOf(":") !== -1) {
+            let rangeIndexes = arg.split(':');
+  
+            //TODO: This is not actually a range right now
+            for (let j = 0; j < rangeIndexes.length; j++) {
+              argValues.push(getIndividualArgValue(rangeIndexes[j]));
+            }
+          }
+          else {
+            argValues.push(getIndividualArgValue(arg));
           }
         }
-        else {
-          argValues.push(getIndividualArgValue(arg));
-        }
+        functionName = functionName.toUpperCase();
+        let result = formulajs[functionName].apply(null, argValues);
+  
+        this.text = result;
+      } catch (error) {
+        console.error(error);
+        alert('Formula Error');
+        throw error;
       }
-
-      let result = formulajs[functionName].apply(null, argValues);
-
-      this.text = result;
     }
     else {
       this.text = value;
@@ -275,7 +281,11 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
     if (this.isEditing) {
       this.isEditing = false;
-      this.updateValue(this.inputElement.val());
+      try {
+        this.updateValue(this.inputElement.val());
+      } catch (error) {
+        console.error(error);
+      }
       this.inputElement.remove();
       this.inputElement = undefined;
     }
@@ -332,6 +342,11 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
       //TODO: auto scroll if moving to cell would make the input disappear
 
       if (keyCode === 13) {
+        this.updateValue(this.inputElement.val());
+
+        if (this.isNumeric) {
+          this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
+        }
         //Enter, go to next row
         this.sheet.rows[this.rowIndex + (e.shiftKey ? -1 : 1)].cells[this.index].edit();
       }
@@ -372,11 +387,11 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
       if (keyCode !== 13 && keyCode !== 9 && keyCode !== 37 && keyCode !== 39 && keyCode !== 38 && keyCode !== 40) {
         dirty = true;
 
-        this.updateValue(this.inputElement.val());
+        // this.updateValue(this.inputElement.val());
 
-        if (this.isNumeric) {
-          this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
-        }
+        // if (this.isNumeric) {
+        //   this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
+        // }
       }
     });
 
@@ -591,7 +606,7 @@ class Context {
       onMouseUp: (x, y) => {},
       onMouseClick: (x, y) => {},
       onScroll: (dx, dy) => {},
-      useCanvasScroll: false
+      useCanvasScroll: true
     }, options);
 
     target.width = options.width * 2;
@@ -954,6 +969,267 @@ class ScreenComponent {
 
 /***/ }),
 
+/***/ "./src/ScrollBar.js":
+/*!**************************!*\
+  !*** ./src/ScrollBar.js ***!
+  \**************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * ScrollBar reference jquery.scrollbar
+ */
+class ScrollBar {
+  constructor(target, sheet) {
+    this.wrapper = target;
+    this.sheet = sheet;
+    this.namespace = '.scrollbar_1';
+    this.scrollx = {};
+    this.scrolly = {};
+
+    var S = this,
+      sheet = this.sheet,
+      namespace = this.namespace,
+      s = { x: this.scrollx, y: this.scrolly };
+    // init scrollbars & recalculate sizes
+    $.each(s, function (d, scrollx) {
+
+      var scrollToValue = 0;
+
+      if (!scrollx.scroll) {
+
+        scrollx.scroll = S._getScroll('scroll' + d).addClass('scroll-' + d);
+
+        scrollx.scroll.addClass('scroll-element_arrows_visible');
+
+        scrollx.mousewheel = function (event) {
+
+          if (!scrollx.isVisible || (d === 'x' && S.isVerticalScroll(event))) {
+            return true;
+          }
+          if (d === 'y' && !S.isVerticalScroll(event)) {
+            s.x.mousewheel(event);
+            return true;
+          }
+
+          var delta = event.originalEvent.wheelDelta * -1 || event.originalEvent.detail;
+          var maxScrollValue = scrollx.size - scrollx.visible - scrollx.offset;
+
+          if ((delta > 0 && scrollToValue < maxScrollValue) || (delta < 0 && scrollToValue > 0)) {
+            scrollToValue = scrollToValue + delta;
+            if (scrollToValue < 0)
+              scrollToValue = 0;
+            if (scrollToValue > maxScrollValue)
+              scrollToValue = maxScrollValue;
+
+            S.scrollTo = S.scrollTo || {};
+          }
+
+          event.preventDefault();
+          return false;
+        };
+
+        scrollx.scroll
+          .on('MozMousePixelScroll' + namespace, scrollx.mousewheel)
+          .on('mousewheel' + namespace, scrollx.mousewheel)
+          .on('mouseenter' + namespace, function () {
+            // scrollToValue = c[scrollOffset]();
+            console.info('MozMousePixelScroll ...')
+          });
+
+        // handle arrows & scroll inner mousedown event
+        scrollx.scroll.find('.scroll-arrow, .scroll-element_track')
+          .on('mousedown' + namespace, function (event) {
+
+            if (event.which != 1) // lmb
+              return true;
+
+            var scrollForward = 1;
+
+            var data = {
+              "eventOffset": event[(d === 'x') ? 'pageX' : 'pageY'],
+              "maxScrollValue": scrollx.size - scrollx.visible - scrollx.offset,
+              "scrollbarOffset": scrollx.scroll.bar.offset()[(d === 'x') ? 'left' : 'top'],
+              "scrollbarSize": scrollx.scroll.bar[(d === 'x') ? 'outerWidth' : 'outerHeight'](),
+              "scrollPostion": (d === 'x') ? Math.abs(sheet.scrollX) : Math.abs(sheet.scrollY)
+            };
+            var scrollStep = 30, stepScrolling = true;
+
+            if ($(this).hasClass('scroll-arrow')) {
+              scrollForward = $(this).hasClass("scroll-arrow_more") ? 1 : -1;
+              scrollStep = o.scrollStep * scrollForward;
+              scrollToValue = scrollForward > 0 ? data.maxScrollValue : 0;
+            } else {
+              scrollForward = (data.eventOffset > (data.scrollbarOffset + data.scrollbarSize) ? 1
+                : (data.eventOffset < data.scrollbarOffset ? -1 : 0));
+              scrollStep = Math.round(scrollx.visible * 0.75) * scrollForward;
+              scrollToValue = (data.eventOffset - data.scrollbarOffset -
+                (stepScrolling ? (scrollForward == 1 ? data.scrollbarSize : 0)
+                  : Math.round(data.scrollbarSize / 2)));
+              scrollToValue = data.scrollPostion + (scrollToValue / scrollx.kx);
+            }
+
+            var scrollToValue = stepScrolling ? -(data.scrollPostion + scrollStep) : scrollToValue;
+
+            S.doScroll(d, scrollToValue);
+
+            return S._handleMouseDown(null, event);;
+          });
+
+        // handle scrollbar drag'n'drop
+        scrollx.scroll.bar.on('mousedown' + namespace, function (event) {
+
+          if (event.which != 1) // lmb
+            return true;
+
+          var eventPosition = event[(d === 'x') ? 'pageX' : 'pageY'];
+          var initOffset = (d === 'x') ? sheet.scrollX : sheet.scrollY;
+
+          scrollx.scroll.addClass('scroll-draggable');
+
+          $(document).on('mousemove' + namespace, function (event) {
+            var diff = parseInt((event[(d === 'x') ? 'pageX' : 'pageY'] - eventPosition) / scrollx.kx, 10);
+            var offset_ = initOffset - diff;
+
+            S.doScroll(d, offset_);
+          });
+
+          return S._handleMouseDown(function () {
+            scrollx.scroll.removeClass('scroll-draggable');
+          }, event);
+        });
+      }
+    });
+
+    // calculate init sizes
+    $.each(s, function (d, scrollx) {
+      $.extend(scrollx, (d == "x") ? {
+        "offset": parseInt(Math.abs(sheet.scrollX), 10) || 0,
+        "size": sheet.getContentWidth(),
+        "visible": sheet.width
+      } : {
+          "offset": parseInt(Math.abs(sheet.scrollY), 10) || 0,
+          "size": sheet.getContentHeight(),
+          "visible": sheet.height
+        });
+    });
+
+    // calculate scroll size
+    $.each(s, function (d, scrollx) {
+
+      var cssOffset = (d === 'x') ? 'left' : 'top';
+      var cssFullSize = (d === 'x') ? 'outerWidth' : 'outerHeight';
+      var cssSize = (d === 'x') ? 'width' : 'height';
+      var offset = parseInt(sheet.scrollX, 10) || 0;
+
+      var AreaSize = scrollx.size;
+      var AreaVisible = scrollx.visible + offset;
+
+      var scrollSize = scrollx.scroll.size[cssFullSize]() + (parseInt(scrollx.scroll.size.css(cssOffset), 10) || 0);
+
+      scrollx.scrollbarSize = parseInt(scrollSize * AreaVisible / AreaSize, 10);
+      scrollx.scroll.bar.css(cssSize, scrollx.scrollbarSize + 'px');
+
+      scrollx.scrollbarSize = scrollx.scroll.bar[cssFullSize]();
+      scrollx.kx = ((scrollSize - scrollx.scrollbarSize) / (AreaSize - AreaVisible)) || 1;
+      scrollx.maxScrollOffset = AreaSize - AreaVisible;
+    });
+  }
+
+  _getScroll(scroll) {
+    var html = [
+      '<div class="scroll-element scroll-element_arrows_visible scroll-scrollx_visible scroll-scrolly_visible">',
+      '<div class="scroll-element_corner"></div>',
+      '<div class="scroll-arrow scroll-arrow_less"></div>',
+      '<div class="scroll-arrow scroll-arrow_more"></div>',
+      '<div class="scroll-element_outer">',
+      '<div class="scroll-element_size"></div>', // required! used for scrollbar size calculation !
+      '<div class="scroll-element_inner-wrapper">',
+      '<div class="scroll-element_inner scroll-element_track">', // used for handling scrollbar click
+      '<div class="scroll-element_inner-bottom"></div>',
+      '</div>',
+      '</div>',
+      '<div class="scroll-bar">', // required
+      '<div class="scroll-bar_body">',
+      '<div class="scroll-bar_body-inner"></div>',
+      '</div>',
+      '<div class="scroll-bar_bottom"></div>',
+      '<div class="scroll-bar_center"></div>',
+      '</div>',
+      '</div>',
+      '</div>'
+    ].join('');
+    scroll = $(html).appendTo(this.wrapper);
+    $.extend(scroll, {
+      bar: scroll.find('.scroll-bar'),
+      size: scroll.find('.scroll-element_size'),
+      track: scroll.find('.scroll-element_track')
+    });
+    return scroll;
+  }
+
+  doScroll(d, offset_) {
+    if (offset_ > 0) {
+      offset_ = 0;
+    }
+    if (d === 'x') {
+      if(this.sheet.getContentWidth() - Math.abs(offset_) < this.sheet.width){
+        offset_ = this.sheet.width - 50 - this.sheet.getContentWidth();
+      }
+      this.sheet.scrollX = offset_;
+      this.scrollx.scroll.bar.css('left', Math.abs(sheet.scrollX) * this.scrollx.kx + 'px');
+    } else {
+      if((this.sheet.getContentHeight() - Math.abs(offset_)) < this.sheet.height){
+        offset_ = this.sheet.height - 50 - this.sheet.getContentHeight();
+      }
+      this.sheet.scrollY = offset_;
+      this.scrolly.scroll.bar.css('top', Math.abs(sheet.scrollY) * this.scrolly.kx + 'px');
+    }
+  }
+
+  isVerticalScroll(event) {
+    var e = event.originalEvent;
+    if (e.axis && e.axis === e.HORIZONTAL_AXIS)
+      return false;
+    if (e.wheelDeltaX)
+      return false;
+    return true;
+  }
+
+  _handleMouseDown(callback_, event_) {
+
+    var namespace = this.namespace;
+
+    $(document).on('blur' + namespace, function () {
+      $(document).add('body').off(namespace);
+      callback_ && callback_();
+    });
+    $(document).on('dragstart' + namespace, function (event) {
+      event.preventDefault();
+      return false;
+    });
+    $(document).on('mouseup' + namespace, function () {
+      $(document).add('body').off(namespace);
+      callback_ && callback_();
+    });
+    $('body').on('selectstart' + namespace, function (event) {
+      event.preventDefault();
+      return false;
+    });
+
+    event_ && event_.preventDefault();
+    return false;
+  }
+
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (ScrollBar);
+
+
+/***/ }),
+
 /***/ "./src/Sheet.js":
 /*!**********************!*\
   !*** ./src/Sheet.js ***!
@@ -967,7 +1243,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Context__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Context */ "./src/Context.js");
 /* harmony import */ var _Row__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Row */ "./src/Row.js");
 /* harmony import */ var _ColumnHeaderRow__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ColumnHeaderRow */ "./src/ColumnHeaderRow.js");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants */ "./src/constants.js");
+/* harmony import */ var _ScrollBar__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ScrollBar */ "./src/ScrollBar.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./src/constants.js");
+
 
 
 
@@ -991,35 +1269,36 @@ class Sheet {
     }, options);
 
     var canvas = document.createElement("canvas");
-    target.appendChild(canvas)
-
+    target.appendChild(canvas);
+    
     this.context = new _Context__WEBPACK_IMPORTED_MODULE_0__["default"](canvas, {
-        onMouseMove: this.mouseMove.bind(this),
-        onMouseDown: this.mouseDown.bind(this),
-        onMouseUp: this.mouseUp.bind(this),
-        onMouseClick: this.mouseClick.bind(this),
-        onScroll: this.scroll.bind(this),
-        width: this.width,
-        height: this.height
+      onMouseMove: this.mouseMove.bind(this),
+      onMouseDown: this.mouseDown.bind(this),
+      onMouseUp: this.mouseUp.bind(this),
+      onMouseClick: this.mouseClick.bind(this),
+      onScroll: this.scroll.bind(this),
+      width: this.width,
+      height: this.height
     });
-
+    
     //TODO: make target a div and have library create canvas element
     //TODO: allow to fill size of div placed in
-
+    
     //Column headerX
     this.columnHeaderRow = new _ColumnHeaderRow__WEBPACK_IMPORTED_MODULE_2__["default"](this, 0, 0, this.rowCount);
-
+    
     //Data rows
     this.rows = [];
-
-    let rowY = _constants__WEBPACK_IMPORTED_MODULE_3__["CELL_HEIGHT"];
-
+    
+    let rowY = _constants__WEBPACK_IMPORTED_MODULE_4__["CELL_HEIGHT"];
+    
     for(let i = 0; i < this.rowCount; i++) {
       this.rows.push(new _Row__WEBPACK_IMPORTED_MODULE_1__["default"](i, this, 0, rowY, this.colCount));
-      rowY += _constants__WEBPACK_IMPORTED_MODULE_3__["CELL_HEIGHT"];
+      rowY += _constants__WEBPACK_IMPORTED_MODULE_4__["CELL_HEIGHT"];
     }
-
+    
     this.mainLoop();
+    this.scrollBar = new _ScrollBar__WEBPACK_IMPORTED_MODULE_3__["default"](target, this, this.width, this.height);
   }
 
   mainLoop() {
@@ -1077,23 +1356,28 @@ class Sheet {
   }
 
   scroll(dx, dy) {
+    var scrollY = this.scrollY;
     if(dy > 0) {
-      this.scrollY -= 5 * dy;
+      scrollY -= 5 * dy;
     }
     else if(dy < 0) {
-      if(this.scrollY <= -5 * -dy) {
-        this.scrollY -= 5 * dy;
+      if(scrollY <= -5 * -dy) {
+        scrollY -= 5 * dy;
       }
     }
 
+    this.scrollBar.doScroll('y', scrollY);
+
+    var scrollX = this.scrollX;
     if(dx > 0) {
-      this.scrollX -= 5 * dx;
+      scrollX -= 5 * dx;
     }
     else if(dx < 0) {
-      if(this.scrollX <= -5 * -dx) {
-        this.scrollX -= 5 * dx;
+      if(scrollX <= -5 * -dx) {
+        scrollX -= 5 * dx;
       }
     }
+    this.scrollBar.doScroll('x', scrollX);
   }
 
   draw() {
@@ -1117,7 +1401,7 @@ class Sheet {
 
     //Column headers
     this.columnHeaderRow.draw();
-    this.context.drawRect(0, 0, _constants__WEBPACK_IMPORTED_MODULE_3__["ROW_HEADER_WIDTH"], _constants__WEBPACK_IMPORTED_MODULE_3__["CELL_HEIGHT"], {
+    this.context.drawRect(0, 0, _constants__WEBPACK_IMPORTED_MODULE_4__["ROW_HEADER_WIDTH"], _constants__WEBPACK_IMPORTED_MODULE_4__["CELL_HEIGHT"], {
       borderColor: 'black',
       borderWidth: 1,
       fillColor: 'darkGray'
@@ -1226,9 +1510,17 @@ class Sheet {
       }
     }
   }
-
+  getLastRow(){
+    return this.rows[this.rows.length -1];
+  }
   getCell(rowIndex, colIndex) {
     return this.rows[rowIndex].getCell(colIndex);
+  }
+  getContentWidth(){
+    return this.columnHeaderRow.width;
+  }
+  getContentHeight(){
+    return this.getLastRow().y
   }
 }
 

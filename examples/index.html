@@ -4,7 +4,6 @@
 <head>
   <link rel="stylesheet" href="../dist/scrollbar/jquery.scrollbar.css">
   <script type="text/javascript" src="../dist/jquery-3.2.0.min.js"></script>
-  <script src="../dist/scrollbar/jquery.scrollbar.min.js"></script>
   <script type="text/javascript" src="../dist/numeric.min.js"></script>
   <script type="text/javascript" src="../dist/numeral.min.js"></script>
   <script type="text/javascript" src="../dist/jstat.min.js"></script>
@@ -16,27 +15,18 @@
       padding: 0;
     }
 
-    #sheetsDiv {
-      width: 100px;
-      height: 200px;
-      max-width: 200;
-      max-height: 200px;
-      overflow: scroll;
-    }
   </style>
 </head>
 
 <body>
-  <div id="sheetsDiv" class="scrollbar-chrome">
-
+  <div id="sheetsDiv" class="scrollbar-chrome" style="position: relative;">
   </div>
   <script type="text/javascript">
     var sheet = new sheets.Sheet(document.getElementById("sheetsDiv"), {
-      width: 500,
-      height: 400
-    });
-    jQuery(document).ready(function () {
-      jQuery('.scrollbar-chrome').scrollbar();
+      width: $('#sheetsDiv').width(),
+      height: $(window).height(),
+      rowCount: 200,
+      colCount: 40
     });
   </script>
 </body>

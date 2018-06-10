@@ -7,7 +7,7 @@ class Context {
       onMouseUp: (x, y) => {},
       onMouseClick: (x, y) => {},
       onScroll: (dx, dy) => {},
-      useCanvasScroll: false
+      useCanvasScroll: true
     }, options);
 
     target.width = options.width * 2;

@@ -34,7 +34,7 @@ class Cell extends ScreenComponent {
     }
 
     const getIndividualArgValue = (arg) => {
-      // let colAlphaMatch = arg.match(/[A-Z]+/);
+      let colAlphaMatch = arg.match(/[A-Z]+/);
 
       if (/[A-Z]+/.test(arg)) {
         //Cell reference
@@ -53,30 +53,36 @@ class Cell extends ScreenComponent {
     };
 
     if (value.indexOf("=") == 0) {
-      let functionName = value.substr(1).split('(')[0];
-      let args = value.substr(1).split('(')[1].replace(')', '').split(',');
-
-      let argValues = [];
-
-      for (let i = 0; i < args.length; i++) {
-        let arg = args[i].trim();
-
-        if (arg.indexOf(":") !== -1) {
-          let rangeIndexes = arg.split(':');
-
-          //TODO: This is not actually a range right now
-          for (let j = 0; j < rangeIndexes.length; j++) {
-            argValues.push(getIndividualArgValue(rangeIndexes[j]));
+      try {
+        let functionName = value.substr(1).split('(')[0];
+        let args = value.substr(1).split('(')[1].replace(')', '').split(',');
+  
+        let argValues = [];
+  
+        for (let i = 0; i < args.length; i++) {
+          let arg = args[i].trim();
+  
+          if (arg.indexOf(":") !== -1) {
+            let rangeIndexes = arg.split(':');
+  
+            //TODO: This is not actually a range right now
+            for (let j = 0; j < rangeIndexes.length; j++) {
+              argValues.push(getIndividualArgValue(rangeIndexes[j]));
+            }
+          }
+          else {
+            argValues.push(getIndividualArgValue(arg));
           }
         }
-        else {
-          argValues.push(getIndividualArgValue(arg));
-        }
+        functionName = functionName.toUpperCase();
+        let result = formulajs[functionName].apply(null, argValues);
+  
+        this.text = result;
+      } catch (error) {
+        console.error(error);
+        alert('Formula Error');
+        throw error;
       }
-
-      let result = formulajs[functionName].apply(null, argValues);
-
-      this.text = result;
     }
     else {
       this.text = value;
@@ -164,7 +170,11 @@ class Cell extends ScreenComponent {
 
     if (this.isEditing) {
       this.isEditing = false;
-      this.updateValue(this.inputElement.val());
+      try {
+        this.updateValue(this.inputElement.val());
+      } catch (error) {
+        console.error(error);
+      }
       this.inputElement.remove();
       this.inputElement = undefined;
     }
@@ -221,6 +231,11 @@ class Cell extends ScreenComponent {
       //TODO: auto scroll if moving to cell would make the input disappear
 
       if (keyCode === 13) {
+        this.updateValue(this.inputElement.val());
+
+        if (this.isNumeric) {
+          this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
+        }
         //Enter, go to next row
         this.sheet.rows[this.rowIndex + (e.shiftKey ? -1 : 1)].cells[this.index].edit();
       }
@@ -261,11 +276,11 @@ class Cell extends ScreenComponent {
       if (keyCode !== 13 && keyCode !== 9 && keyCode !== 37 && keyCode !== 39 && keyCode !== 38 && keyCode !== 40) {
         dirty = true;
 
-        this.updateValue(this.inputElement.val());
+        // this.updateValue(this.inputElement.val());
 
-        if (this.isNumeric) {
-          this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
-        }
+        // if (this.isNumeric) {
+        //   this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
+        // }
       }
     });
 

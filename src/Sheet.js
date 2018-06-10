@@ -1,6 +1,7 @@
 import Context from './Context';
 import Row from './Row';
 import ColumnHeaderRow from './ColumnHeaderRow';
+import ScrollBar from './ScrollBar';
 import {CELL_WIDTH, CELL_HEIGHT, ROW_HEADER_WIDTH} from './constants';
 
 class Sheet {
@@ -21,35 +22,36 @@ class Sheet {
     }, options);
 
     var canvas = document.createElement("canvas");
-    target.appendChild(canvas)
-
+    target.appendChild(canvas);
+    
     this.context = new Context(canvas, {
-        onMouseMove: this.mouseMove.bind(this),
-        onMouseDown: this.mouseDown.bind(this),
-        onMouseUp: this.mouseUp.bind(this),
-        onMouseClick: this.mouseClick.bind(this),
-        onScroll: this.scroll.bind(this),
-        width: this.width,
-        height: this.height
+      onMouseMove: this.mouseMove.bind(this),
+      onMouseDown: this.mouseDown.bind(this),
+      onMouseUp: this.mouseUp.bind(this),
+      onMouseClick: this.mouseClick.bind(this),
+      onScroll: this.scroll.bind(this),
+      width: this.width,
+      height: this.height
     });
-
+    
     //TODO: make target a div and have library create canvas element
     //TODO: allow to fill size of div placed in
-
+    
     //Column headerX
     this.columnHeaderRow = new ColumnHeaderRow(this, 0, 0, this.rowCount);
-
+    
     //Data rows
     this.rows = [];
-
+    
     let rowY = CELL_HEIGHT;
-
+    
     for(let i = 0; i < this.rowCount; i++) {
       this.rows.push(new Row(i, this, 0, rowY, this.colCount));
       rowY += CELL_HEIGHT;
     }
-
+    
     this.mainLoop();
+    this.scrollBar = new ScrollBar(target, this, this.width, this.height);
   }
 
   mainLoop() {
@@ -107,23 +109,28 @@ class Sheet {
   }
 
   scroll(dx, dy) {
+    var scrollY = this.scrollY;
     if(dy > 0) {
-      this.scrollY -= 5 * dy;
+      scrollY -= 5 * dy;
     }
     else if(dy < 0) {
-      if(this.scrollY <= -5 * -dy) {
-        this.scrollY -= 5 * dy;
+      if(scrollY <= -5 * -dy) {
+        scrollY -= 5 * dy;
       }
     }
 
+    this.scrollBar.doScroll('y', scrollY);
+
+    var scrollX = this.scrollX;
     if(dx > 0) {
-      this.scrollX -= 5 * dx;
+      scrollX -= 5 * dx;
     }
     else if(dx < 0) {
-      if(this.scrollX <= -5 * -dx) {
-        this.scrollX -= 5 * dx;
+      if(scrollX <= -5 * -dx) {
+        scrollX -= 5 * dx;
       }
     }
+    this.scrollBar.doScroll('x', scrollX);
   }
 
   draw() {
@@ -256,9 +263,17 @@ class Sheet {
       }
     }
   }
-
+  getLastRow(){
+    return this.rows[this.rows.length -1];
+  }
   getCell(rowIndex, colIndex) {
     return this.rows[rowIndex].getCell(colIndex);
+  }
+  getContentWidth(){
+    return this.columnHeaderRow.width;
+  }
+  getContentHeight(){
+    return this.getLastRow().y
   }
 }
 
