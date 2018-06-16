@@ -86,18 +86,24 @@ class ScrollBar {
       }
     });
 
+    this.calculateScrollSize();
+  }
+
+  calculateScrollSize() {
+    var sheet = this.sheet,
+        s = { x: this.scrollx, y: this.scrolly };
     // calculate init sizes
     $.each(s, function (d, scrollx) {
       $.extend(scrollx, (d == "x") ? {
         "offset": parseInt(Math.abs(sheet.scrollX), 10) || 0,
         "size": sheet.getContentWidth(),
         "visible": sheet.width,
-        "isBarVisible":true
+        "isBarVisible": true
       } : {
           "offset": parseInt(Math.abs(sheet.scrollY), 10) || 0,
           "size": sheet.getContentHeight(),
           "visible": sheet.height,
-          "isBarVisible":true
+          "isBarVisible": true
         });
     });
 
@@ -115,6 +121,7 @@ class ScrollBar {
         scrollx.isBarVisible = false;
         scrollx.scroll.bar.hide();
       } else {
+        scrollx.scroll.bar.show();
         var scrollSize = scrollx.scroll.size[cssFullSize]() + (parseInt(scrollx.scroll.size.css(cssOffset), 10) || 0);
 
         scrollx.scrollbarSize = parseInt(scrollSize * AreaVisible / AreaSize, 10);
@@ -165,14 +172,14 @@ class ScrollBar {
     }
     var cssOffset = (d === 'x') ? 'left' : 'top';
     var scrollx = (d === 'x') ? this.scrollx : this.scrolly;
-    if(scrollx.isBarVisible){
+    if (scrollx.isBarVisible) {
       var absOffset = Math.abs(offset_);
       if (d === 'x') {
         if (this.sheet.getContentWidth() - absOffset < this.sheet.width) {
           offset_ = this.sheet.width - 50 - this.sheet.getContentWidth();
         }
         this.sheet.scrollX = offset_;
-      } else if(d === 'y'){
+      } else if (d === 'y') {
         if ((this.sheet.getContentHeight() - absOffset) < this.sheet.height) {
           offset_ = this.sheet.height - 50 - this.sheet.getContentHeight();
         }

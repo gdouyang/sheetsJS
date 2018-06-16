@@ -2,11 +2,11 @@
 class Context {
   constructor(target, options) {
     options = Object.assign({
-      onMouseMove: (x, y) => {},
-      onMouseDown: (x, y) => {},
-      onMouseUp: (x, y) => {},
-      onMouseClick: (x, y) => {},
-      onScroll: (dx, dy) => {},
+      onMouseMove: (x, y) => { },
+      onMouseDown: (x, y) => { },
+      onMouseUp: (x, y) => { },
+      onMouseClick: (x, y) => { },
+      onScroll: (dx, dy) => { },
       useCanvasScroll: true
     }, options);
 
@@ -21,40 +21,46 @@ class Context {
     var self = this;
 
     const getMouseCoords = function (e) {
-  		var rect = self.ctx.canvas.getBoundingClientRect();
+      var rect = self.ctx.canvas.getBoundingClientRect();
 
-  		return {
-  			x: e.clientX - rect.left,
-  			y: e.clientY - rect.top
-  		};
-  	};
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    };
 
-    this.ctx.canvas.onmousemove = function(e) {
+    this.ctx.canvas.onmousemove = function (e) {
       var coords = getMouseCoords(e);
-    	options.onMouseMove(coords.x, coords.y);
+      options.onMouseMove(coords.x, coords.y);
       e.preventDefault();
     };
 
     this.ctx.canvas.onmousedown = function (e) {
-    	var coords = getMouseCoords(e);
-    	options.onMouseDown(coords.x, coords.y);
+      var coords = getMouseCoords(e);
+      options.onMouseDown(coords.x, coords.y);
       e.preventDefault();
     };
 
     this.ctx.canvas.onmouseup = function (e) {
-    	var coords = getMouseCoords(e);
-    	options.onMouseUp(coords.x, coords.y);
+      var coords = getMouseCoords(e);
+      options.onMouseUp(coords.x, coords.y);
       e.preventDefault();
     };
 
     this.ctx.canvas.onclick = function (e) {
-    	var coords = getMouseCoords(e);
-    	options.onMouseClick(coords.x, coords.y);
+      var coords = getMouseCoords(e);
+      options.onMouseClick(coords.x, coords.y);
       e.preventDefault();
     };
 
-    this.ctx.canvas.onmousewheel = function(e) {
-      if(options.useCanvasScroll){
+    this.ctx.canvas.ondblclick = function (e) {
+      var coords = getMouseCoords(e);
+      options.onMouseDbClick(coords.x, coords.y);
+      e.preventDefault();
+    };
+
+    this.ctx.canvas.onmousewheel = function (e) {
+      if (options.useCanvasScroll) {
         options.onScroll(e.deltaX, e.deltaY);
         e.preventDefault();
       }
@@ -74,7 +80,7 @@ class Context {
 
     this.ctx.beginPath();
     this.ctx.moveTo(points[0][0], points[0][1]);
-    for(let i = 1; i < points.length; i++) {
+    for (let i = 1; i < points.length; i++) {
       this.ctx.lineTo(points[i][0], points[i][1]);
     }
     this.ctx.lineWidth = options.width;
@@ -93,22 +99,22 @@ class Context {
 
     this.ctx.beginPath();
 
-    if(options.fillColor) {
+    if (options.fillColor) {
       this.ctx.fillStyle = options.fillColor;
     }
 
-    if(options.borderColor) {
+    if (options.borderColor) {
       this.ctx.lineWidth = options.borderWidth;
       this.ctx.strokeStyle = options.borderColor;
     }
 
     this.ctx.rect(x, y, width, height);
 
-    if(options.fillColor) {
+    if (options.fillColor) {
       this.ctx.fill();
     }
 
-    if(options.borderColor) {
+    if (options.borderColor) {
       this.ctx.stroke();
     }
   }

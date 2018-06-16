@@ -20,7 +20,12 @@ class Cell extends ScreenComponent {
 
     this.dependentCells = [];
   }
-
+  getRow(index) {
+    if (index === null) {
+      index = this.rowIndex;
+    }
+    return this.sheet.rows[index];
+  }
   registerDependentValueCell(cell) {
     this.dependentCells.push(cell);
   }
@@ -56,15 +61,15 @@ class Cell extends ScreenComponent {
       try {
         let functionName = value.substr(1).split('(')[0];
         let args = value.substr(1).split('(')[1].replace(')', '').split(',');
-  
+
         let argValues = [];
-  
+
         for (let i = 0; i < args.length; i++) {
           let arg = args[i].trim();
-  
+
           if (arg.indexOf(":") !== -1) {
             let rangeIndexes = arg.split(':');
-  
+
             //TODO: This is not actually a range right now
             for (let j = 0; j < rangeIndexes.length; j++) {
               argValues.push(getIndividualArgValue(rangeIndexes[j]));
@@ -76,7 +81,7 @@ class Cell extends ScreenComponent {
         }
         functionName = functionName.toUpperCase();
         let result = formulajs[functionName].apply(null, argValues);
-  
+
         this.text = result;
       } catch (error) {
         console.error(error);
@@ -193,7 +198,6 @@ class Cell extends ScreenComponent {
 
   mouseUp(x, y) {
     if (this.sheet.multiSelectSize() == 1) {
-      this.edit();
       this.sheet.clearMultiSelect();
     }
 
@@ -201,7 +205,53 @@ class Cell extends ScreenComponent {
   }
 
   mouseClick(x, y) {
+    //this.edit();
+  }
 
+  onMouseDbClick(x, y) {
+    this.edit();
+  }
+
+  onKeydown(e) {
+    let keyCode = e.keyCode || e.which;
+    let _rowIndex = -1;
+    let _colIndex = -1;
+    if (keyCode === 13) {
+      //Enter, edit
+      this.edit();
+    }
+    else if (keyCode === 9) {
+      //Tab, go to next column
+      _rowIndex = this.rowIndex;
+      _colIndex = this.index + (e.shiftKey ? -1 : 1);
+    }
+    else if (keyCode === 37) {
+      //Left arrow
+      _rowIndex = this.rowIndex;
+      _colIndex = this.index - 1;
+    }
+    else if (keyCode === 39) {
+      //Right arrow
+      _rowIndex = this.rowIndex;
+      _colIndex = this.index + 1;
+    }
+    else if (keyCode === 38) {
+      //Up arrow
+      _rowIndex = this.rowIndex - 1;
+      _colIndex = this.index;
+    }
+    else if (keyCode === 40) {
+      //Down arrow
+      _rowIndex = this.rowIndex + 1;
+      _colIndex = this.index;
+    }
+    if (_rowIndex != -1 && _colIndex != -1) {
+      let _row = this.getRow(_rowIndex);
+      if (_row) {
+        this.mouseUp();
+        _row.getCell(_colIndex).mouseDown();
+      }
+    }
   }
 
   edit() {
@@ -229,7 +279,8 @@ class Cell extends ScreenComponent {
       let keyCode = e.keyCode || e.which;
 
       //TODO: auto scroll if moving to cell would make the input disappear
-
+      let _rowIndex = -1;
+      let _colIndex = -1;
       if (keyCode === 13) {
         this.updateValue(this.inputElement.val());
 
@@ -237,36 +288,49 @@ class Cell extends ScreenComponent {
           this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
         }
         //Enter, go to next row
-        this.sheet.rows[this.rowIndex + (e.shiftKey ? -1 : 1)].cells[this.index].edit();
+        _rowIndex = this.rowIndex + (e.shiftKey ? -1 : 1);
+        _colIndex = this.index;
       }
       else if (keyCode === 9) {
         //Tab, go to next column
-        this.sheet.rows[this.rowIndex].cells[this.index + (e.shiftKey ? -1 : 1)].edit();
+        _rowIndex = this.rowIndex;
+        _colIndex = this.index + (e.shiftKey ? -1 : 1);
         e.preventDefault();
       }
       else if (keyCode === 37) {
         //Left arrow
         if (!dirty) {
-          this.sheet.rows[this.rowIndex].cells[this.index - 1].edit();
+          _rowIndex = this.rowIndex;
+          _colIndex = this.index - 1;
         }
       }
       else if (keyCode === 39) {
         //Right arrow
         if (!dirty) {
-          this.sheet.rows[this.rowIndex].cells[this.index + 1].edit();
+          _rowIndex = this.rowIndex;
+          _colIndex = this.index + 1;
         }
       }
       else if (keyCode === 38) {
         //Up arrow
-        this.sheet.rows[this.rowIndex - 1].cells[this.index].edit();
+        _rowIndex = this.rowIndex - 1;
+        _colIndex = this.index;
       }
       else if (keyCode === 40) {
         //Down arrow
-        this.sheet.rows[this.rowIndex + 1].cells[this.index].edit();
+        _rowIndex = this.rowIndex + 1;
+        _colIndex = this.index;
       }
       else if ((keyCode === 46 /* Delete */ || keyCode === 8 /* Backspace */) && !dirty) {
         this.inputElement.val(undefined);
         this.updateValue(undefined);
+      }
+
+      if (_rowIndex != -1 && _colIndex != -1) {
+        let _row = this.getRow(_rowIndex);
+        if (_row) {
+          _row.getCell(_colIndex).edit();
+        }
       }
     });
 

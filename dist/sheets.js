@@ -131,7 +131,12 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
     this.dependentCells = [];
   }
-
+  getRow(index) {
+    if (index === null) {
+      index = this.rowIndex;
+    }
+    return this.sheet.rows[index];
+  }
   registerDependentValueCell(cell) {
     this.dependentCells.push(cell);
   }
@@ -167,15 +172,15 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
       try {
         let functionName = value.substr(1).split('(')[0];
         let args = value.substr(1).split('(')[1].replace(')', '').split(',');
-  
+
         let argValues = [];
-  
+
         for (let i = 0; i < args.length; i++) {
           let arg = args[i].trim();
-  
+
           if (arg.indexOf(":") !== -1) {
             let rangeIndexes = arg.split(':');
-  
+
             //TODO: This is not actually a range right now
             for (let j = 0; j < rangeIndexes.length; j++) {
               argValues.push(getIndividualArgValue(rangeIndexes[j]));
@@ -187,7 +192,7 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         functionName = functionName.toUpperCase();
         let result = formulajs[functionName].apply(null, argValues);
-  
+
         this.text = result;
       } catch (error) {
         console.error(error);
@@ -304,7 +309,6 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
   mouseUp(x, y) {
     if (this.sheet.multiSelectSize() == 1) {
-      this.edit();
       this.sheet.clearMultiSelect();
     }
 
@@ -312,7 +316,53 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   mouseClick(x, y) {
+    //this.edit();
+  }
 
+  onMouseDbClick(x, y) {
+    this.edit();
+  }
+
+  onKeydown(e) {
+    let keyCode = e.keyCode || e.which;
+    let _rowIndex = -1;
+    let _colIndex = -1;
+    if (keyCode === 13) {
+      //Enter, edit
+      this.edit();
+    }
+    else if (keyCode === 9) {
+      //Tab, go to next column
+      _rowIndex = this.rowIndex;
+      _colIndex = this.index + (e.shiftKey ? -1 : 1);
+    }
+    else if (keyCode === 37) {
+      //Left arrow
+      _rowIndex = this.rowIndex;
+      _colIndex = this.index - 1;
+    }
+    else if (keyCode === 39) {
+      //Right arrow
+      _rowIndex = this.rowIndex;
+      _colIndex = this.index + 1;
+    }
+    else if (keyCode === 38) {
+      //Up arrow
+      _rowIndex = this.rowIndex - 1;
+      _colIndex = this.index;
+    }
+    else if (keyCode === 40) {
+      //Down arrow
+      _rowIndex = this.rowIndex + 1;
+      _colIndex = this.index;
+    }
+    if (_rowIndex != -1 && _colIndex != -1) {
+      let _row = this.getRow(_rowIndex);
+      if (_row) {
+        this.mouseUp();
+        _row.getCell(_colIndex).mouseDown();
+      }
+    }
   }
 
   edit() {
@@ -340,7 +390,8 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
       let keyCode = e.keyCode || e.which;
 
       //TODO: auto scroll if moving to cell would make the input disappear
-
+      let _rowIndex = -1;
+      let _colIndex = -1;
       if (keyCode === 13) {
         this.updateValue(this.inputElement.val());
 
@@ -348,36 +399,49 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
           this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
         }
         //Enter, go to next row
-        this.sheet.rows[this.rowIndex + (e.shiftKey ? -1 : 1)].cells[this.index].edit();
+        _rowIndex = this.rowIndex + (e.shiftKey ? -1 : 1);
+        _colIndex = this.index;
       }
       else if (keyCode === 9) {
         //Tab, go to next column
-        this.sheet.rows[this.rowIndex].cells[this.index + (e.shiftKey ? -1 : 1)].edit();
+        _rowIndex = this.rowIndex;
+        _colIndex = this.index + (e.shiftKey ? -1 : 1);
         e.preventDefault();
       }
       else if (keyCode === 37) {
         //Left arrow
         if (!dirty) {
-          this.sheet.rows[this.rowIndex].cells[this.index - 1].edit();
+          _rowIndex = this.rowIndex;
+          _colIndex = this.index - 1;
         }
       }
       else if (keyCode === 39) {
         //Right arrow
         if (!dirty) {
-          this.sheet.rows[this.rowIndex].cells[this.index + 1].edit();
+          _rowIndex = this.rowIndex;
+          _colIndex = this.index + 1;
         }
       }
       else if (keyCode === 38) {
         //Up arrow
-        this.sheet.rows[this.rowIndex - 1].cells[this.index].edit();
+        _rowIndex = this.rowIndex - 1;
+        _colIndex = this.index;
       }
       else if (keyCode === 40) {
         //Down arrow
-        this.sheet.rows[this.rowIndex + 1].cells[this.index].edit();
+        _rowIndex = this.rowIndex + 1;
+        _colIndex = this.index;
       }
       else if ((keyCode === 46 /* Delete */ || keyCode === 8 /* Backspace */) && !dirty) {
         this.inputElement.val(undefined);
         this.updateValue(undefined);
+      }
+
+      if (_rowIndex != -1 && _colIndex != -1) {
+        let _row = this.getRow(_rowIndex);
+        if (_row) {
+          _row.getCell(_colIndex).edit();
+        }
       }
     });
 
@@ -541,6 +605,7 @@ class ColumnHeaderRow extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["def
     for(let i = colIndex + 1; i < this.columnHeaders.length; i++) {
       this.columnHeaders[i].x += (newWidth - oldWidth);
     }
+    this.width += (newWidth - oldWidth);
   }
 
   mouseMove(x, y) {
@@ -601,11 +666,11 @@ __webpack_require__.r(__webpack_exports__);
 class Context {
   constructor(target, options) {
     options = Object.assign({
-      onMouseMove: (x, y) => {},
-      onMouseDown: (x, y) => {},
-      onMouseUp: (x, y) => {},
-      onMouseClick: (x, y) => {},
-      onScroll: (dx, dy) => {},
+      onMouseMove: (x, y) => { },
+      onMouseDown: (x, y) => { },
+      onMouseUp: (x, y) => { },
+      onMouseClick: (x, y) => { },
+      onScroll: (dx, dy) => { },
       useCanvasScroll: true
     }, options);
 
@@ -620,40 +685,46 @@ class Context {
     var self = this;
 
     const getMouseCoords = function (e) {
-  		var rect = self.ctx.canvas.getBoundingClientRect();
+      var rect = self.ctx.canvas.getBoundingClientRect();
 
-  		return {
-  			x: e.clientX - rect.left,
-  			y: e.clientY - rect.top
-  		};
-  	};
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    };
 
-    this.ctx.canvas.onmousemove = function(e) {
+    this.ctx.canvas.onmousemove = function (e) {
       var coords = getMouseCoords(e);
-    	options.onMouseMove(coords.x, coords.y);
+      options.onMouseMove(coords.x, coords.y);
       e.preventDefault();
     };
 
     this.ctx.canvas.onmousedown = function (e) {
-    	var coords = getMouseCoords(e);
-    	options.onMouseDown(coords.x, coords.y);
+      var coords = getMouseCoords(e);
+      options.onMouseDown(coords.x, coords.y);
       e.preventDefault();
     };
 
     this.ctx.canvas.onmouseup = function (e) {
-    	var coords = getMouseCoords(e);
-    	options.onMouseUp(coords.x, coords.y);
+      var coords = getMouseCoords(e);
+      options.onMouseUp(coords.x, coords.y);
       e.preventDefault();
     };
 
     this.ctx.canvas.onclick = function (e) {
-    	var coords = getMouseCoords(e);
-    	options.onMouseClick(coords.x, coords.y);
+      var coords = getMouseCoords(e);
+      options.onMouseClick(coords.x, coords.y);
       e.preventDefault();
     };
 
-    this.ctx.canvas.onmousewheel = function(e) {
-      if(options.useCanvasScroll){
+    this.ctx.canvas.ondblclick = function (e) {
+      var coords = getMouseCoords(e);
+      options.onMouseDbClick(coords.x, coords.y);
+      e.preventDefault();
+    };
+
+    this.ctx.canvas.onmousewheel = function (e) {
+      if (options.useCanvasScroll) {
         options.onScroll(e.deltaX, e.deltaY);
         e.preventDefault();
       }
@@ -673,7 +744,7 @@ class Context {
 
     this.ctx.beginPath();
     this.ctx.moveTo(points[0][0], points[0][1]);
-    for(let i = 1; i < points.length; i++) {
+    for (let i = 1; i < points.length; i++) {
       this.ctx.lineTo(points[i][0], points[i][1]);
     }
     this.ctx.lineWidth = options.width;
@@ -692,22 +763,22 @@ class Context {
 
     this.ctx.beginPath();
 
-    if(options.fillColor) {
+    if (options.fillColor) {
       this.ctx.fillStyle = options.fillColor;
     }
 
-    if(options.borderColor) {
+    if (options.borderColor) {
       this.ctx.lineWidth = options.borderWidth;
       this.ctx.strokeStyle = options.borderColor;
     }
 
     this.ctx.rect(x, y, width, height);
 
-    if(options.fillColor) {
+    if (options.fillColor) {
       this.ctx.fill();
     }
 
-    if(options.borderColor) {
+    if (options.borderColor) {
       this.ctx.stroke();
     }
   }
@@ -781,17 +852,21 @@ class Row extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
     let cellX = _constants__WEBPACK_IMPORTED_MODULE_3__["ROW_HEADER_WIDTH"];
 
-    for(let i = 0; i < colCount; i++) {
+    for (let i = 0; i < colCount; i++) {
       this.cells.push(new _Cell__WEBPACK_IMPORTED_MODULE_2__["default"](i, index, sheet, cellX, this.y, _constants__WEBPACK_IMPORTED_MODULE_3__["CELL_WIDTH"], _constants__WEBPACK_IMPORTED_MODULE_3__["CELL_HEIGHT"], options));
       cellX += _constants__WEBPACK_IMPORTED_MODULE_3__["CELL_WIDTH"];
     }
   }
 
+  getCell(celIndex) {
+    return this.cells[celIndex];
+  }
+
   draw() {
-    for(let i = 0; i < this.cells.length; i++) {
+    for (let i = 0; i < this.cells.length; i++) {
       const cell = this.cells[i];
 
-      if(cell.isVisibleOnScreen()) {
+      if (cell.isVisibleOnScreen()) {
         cell.draw();
       }
     }
@@ -806,51 +881,68 @@ class Row extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
     cell.width = newWidth;
     cell.repaint();
 
-    for(let i = colIndex + 1; i < this.cells.length; i++) {
+    for (let i = colIndex + 1; i < this.cells.length; i++) {
       this.cells[i].x += (newWidth - oldWidth);
     }
+    this.width += (newWidth - oldWidth);
   }
 
   mouseDown(x, y) {
-    for(let i = 0; i < this.cells.length; i++) {
-      if(this.cells[i].isCollision(x, y)) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
         this.cells[i].mouseDown(x, y);
       }
     }
   }
 
   mouseMove(x, y) {
-    for(let i = 0; i < this.cells.length; i++) {
-      if(this.cells[i].isCollision(x, y)) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
         this.cells[i].mouseMove(x, y);
       }
     }
   }
 
   mouseUp(x, y) {
-    for(let i = 0; i < this.cells.length; i++) {
-      if(this.cells[i].isCollision(x, y)) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
         this.cells[i].mouseUp(x, y);
       }
     }
   }
 
   mouseClick(x, y) {
-    for(let i = 0; i < this.cells.length; i++) {
-      if(this.cells[i].isCollision(x, y)) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
         this.cells[i].mouseClick(x, y);
       }
     }
   }
 
+  onMouseDbClick(x, y) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
+        this.cells[i].onMouseDbClick(x, y);
+      }
+    }
+  }
+
+  onkeydown(x, y, event) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
+        this.cells[i].onkeydown(x, y, event);
+      }
+    }
+  }
+
   deselectAllCells() {
-    for(let i = 0; i < this.cells.length; i++) {
+    for (let i = 0; i < this.cells.length; i++) {
       this.cells[i].blur();
     }
   }
 
   updateSelection(minColIndex, maxColIndex) {
-    for(let i = minColIndex; i <= maxColIndex; i++) {
+    for (let i = minColIndex; i <= maxColIndex; i++) {
       this.cells[i].isSelected = true;
     }
   }
@@ -1066,18 +1158,24 @@ class ScrollBar {
       }
     });
 
+    this.calculateScrollSize();
+  }
+
+  calculateScrollSize() {
+    var sheet = this.sheet,
+        s = { x: this.scrollx, y: this.scrolly };
     // calculate init sizes
     $.each(s, function (d, scrollx) {
       $.extend(scrollx, (d == "x") ? {
         "offset": parseInt(Math.abs(sheet.scrollX), 10) || 0,
         "size": sheet.getContentWidth(),
         "visible": sheet.width,
-        "isBarVisible":true
+        "isBarVisible": true
       } : {
           "offset": parseInt(Math.abs(sheet.scrollY), 10) || 0,
           "size": sheet.getContentHeight(),
           "visible": sheet.height,
-          "isBarVisible":true
+          "isBarVisible": true
         });
     });
 
@@ -1095,6 +1193,7 @@ class ScrollBar {
         scrollx.isBarVisible = false;
         scrollx.scroll.bar.hide();
       } else {
+        scrollx.scroll.bar.show();
         var scrollSize = scrollx.scroll.size[cssFullSize]() + (parseInt(scrollx.scroll.size.css(cssOffset), 10) || 0);
 
         scrollx.scrollbarSize = parseInt(scrollSize * AreaVisible / AreaSize, 10);
@@ -1145,14 +1244,14 @@ class ScrollBar {
     }
     var cssOffset = (d === 'x') ? 'left' : 'top';
     var scrollx = (d === 'x') ? this.scrollx : this.scrolly;
-    if(scrollx.isBarVisible){
+    if (scrollx.isBarVisible) {
       var absOffset = Math.abs(offset_);
       if (d === 'x') {
         if (this.sheet.getContentWidth() - absOffset < this.sheet.width) {
           offset_ = this.sheet.width - 50 - this.sheet.getContentWidth();
         }
         this.sheet.scrollX = offset_;
-      } else if(d === 'y'){
+      } else if (d === 'y') {
         if ((this.sheet.getContentHeight() - absOffset) < this.sheet.height) {
           offset_ = this.sheet.height - 50 - this.sheet.getContentHeight();
         }
@@ -1241,7 +1340,7 @@ class Sheet {
       rowCount: 10,
       colCount: 5,
     }, options);
-
+    // create canvas and append to target
     var canvas = document.createElement("canvas");
     target.appendChild(canvas);
     
@@ -1250,13 +1349,11 @@ class Sheet {
       onMouseDown: this.mouseDown.bind(this),
       onMouseUp: this.mouseUp.bind(this),
       onMouseClick: this.mouseClick.bind(this),
-      onScroll: this.scroll.bind(this),
+      onMouseDbClick: this.onMouseDbClick.bind(this),
+      onScroll: this.onScroll.bind(this),
       width: this.width,
       height: this.height
     });
-    
-    //TODO: make target a div and have library create canvas element
-    //TODO: allow to fill size of div placed in
     
     //Column headerX
     this.columnHeaderRow = new _ColumnHeaderRow__WEBPACK_IMPORTED_MODULE_2__["default"](this, 0, 0, this.colCount);
@@ -1273,6 +1370,13 @@ class Sheet {
     
     this.mainLoop();
     this.scrollBar = new _ScrollBar__WEBPACK_IMPORTED_MODULE_3__["default"](target, this, this.width, this.height);
+
+    window.addEventListener("keydown", (e) => {
+      if(this.selectMinRowIndex != -1 && this.selectMinColIndex != -1){
+        this.rows[this.selectMinRowIndex].cells[this.selectMinColIndex].onKeydown(e);
+      }
+
+    }, false);
   }
 
   mainLoop() {
@@ -1329,7 +1433,15 @@ class Sheet {
     }
   }
 
-  scroll(dx, dy) {
+  onMouseDbClick(x, y) {
+    for(let i = 0; i < this.rows.length; i++) {
+      if(this.rows[i].isCollision(x, y)) {
+        this.rows[i].onMouseDbClick(x, y);
+      }
+    }
+  }
+
+  onScroll(dx, dy) {
     var scrollY = this.scrollY;
     if(dy > 0) {
       scrollY -= 5 * dy;
@@ -1420,7 +1532,7 @@ class Sheet {
   }
 
   resizeCol(colIndex, newWidth) {
-    if(newWidth < 0) {
+    if(newWidth < 10) {
       return;
     }
     
@@ -1429,6 +1541,7 @@ class Sheet {
     for(let i = 0; i < this.rows.length; i++) {
       this.rows[i].resizeCol(colIndex, newWidth);
     }
+    this.scrollBar.calculateScrollSize();
   }
 
   deselectAllCells() {

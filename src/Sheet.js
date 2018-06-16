@@ -20,7 +20,7 @@ class Sheet {
       rowCount: 10,
       colCount: 5,
     }, options);
-
+    // create canvas and append to target
     var canvas = document.createElement("canvas");
     target.appendChild(canvas);
     
@@ -29,13 +29,11 @@ class Sheet {
       onMouseDown: this.mouseDown.bind(this),
       onMouseUp: this.mouseUp.bind(this),
       onMouseClick: this.mouseClick.bind(this),
-      onScroll: this.scroll.bind(this),
+      onMouseDbClick: this.onMouseDbClick.bind(this),
+      onScroll: this.onScroll.bind(this),
       width: this.width,
       height: this.height
     });
-    
-    //TODO: make target a div and have library create canvas element
-    //TODO: allow to fill size of div placed in
     
     //Column headerX
     this.columnHeaderRow = new ColumnHeaderRow(this, 0, 0, this.colCount);
@@ -52,6 +50,13 @@ class Sheet {
     
     this.mainLoop();
     this.scrollBar = new ScrollBar(target, this, this.width, this.height);
+
+    window.addEventListener("keydown", (e) => {
+      if(this.selectMinRowIndex != -1 && this.selectMinColIndex != -1){
+        this.rows[this.selectMinRowIndex].cells[this.selectMinColIndex].onKeydown(e);
+      }
+
+    }, false);
   }
 
   mainLoop() {
@@ -108,7 +113,15 @@ class Sheet {
     }
   }
 
-  scroll(dx, dy) {
+  onMouseDbClick(x, y) {
+    for(let i = 0; i < this.rows.length; i++) {
+      if(this.rows[i].isCollision(x, y)) {
+        this.rows[i].onMouseDbClick(x, y);
+      }
+    }
+  }
+
+  onScroll(dx, dy) {
     var scrollY = this.scrollY;
     if(dy > 0) {
       scrollY -= 5 * dy;
@@ -199,7 +212,7 @@ class Sheet {
   }
 
   resizeCol(colIndex, newWidth) {
-    if(newWidth < 0) {
+    if(newWidth < 10) {
       return;
     }
     
@@ -208,6 +221,7 @@ class Sheet {
     for(let i = 0; i < this.rows.length; i++) {
       this.rows[i].resizeCol(colIndex, newWidth);
     }
+    this.scrollBar.calculateScrollSize();
   }
 
   deselectAllCells() {

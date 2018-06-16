@@ -1,7 +1,7 @@
 import ScreenComponent from './ScreenComponent';
 import RowHeader from './RowHeader';
 import Cell from './Cell';
-import {CELL_WIDTH, CELL_HEIGHT, ROW_HEADER_WIDTH} from './constants';
+import { CELL_WIDTH, CELL_HEIGHT, ROW_HEADER_WIDTH } from './constants';
 
 class Row extends ScreenComponent {
   constructor(index, sheet, x, y, colCount, options) {
@@ -24,17 +24,21 @@ class Row extends ScreenComponent {
 
     let cellX = ROW_HEADER_WIDTH;
 
-    for(let i = 0; i < colCount; i++) {
+    for (let i = 0; i < colCount; i++) {
       this.cells.push(new Cell(i, index, sheet, cellX, this.y, CELL_WIDTH, CELL_HEIGHT, options));
       cellX += CELL_WIDTH;
     }
   }
 
+  getCell(celIndex) {
+    return this.cells[celIndex];
+  }
+
   draw() {
-    for(let i = 0; i < this.cells.length; i++) {
+    for (let i = 0; i < this.cells.length; i++) {
       const cell = this.cells[i];
 
-      if(cell.isVisibleOnScreen()) {
+      if (cell.isVisibleOnScreen()) {
         cell.draw();
       }
     }
@@ -49,51 +53,68 @@ class Row extends ScreenComponent {
     cell.width = newWidth;
     cell.repaint();
 
-    for(let i = colIndex + 1; i < this.cells.length; i++) {
+    for (let i = colIndex + 1; i < this.cells.length; i++) {
       this.cells[i].x += (newWidth - oldWidth);
     }
+    this.width += (newWidth - oldWidth);
   }
 
   mouseDown(x, y) {
-    for(let i = 0; i < this.cells.length; i++) {
-      if(this.cells[i].isCollision(x, y)) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
         this.cells[i].mouseDown(x, y);
       }
     }
   }
 
   mouseMove(x, y) {
-    for(let i = 0; i < this.cells.length; i++) {
-      if(this.cells[i].isCollision(x, y)) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
         this.cells[i].mouseMove(x, y);
       }
     }
   }
 
   mouseUp(x, y) {
-    for(let i = 0; i < this.cells.length; i++) {
-      if(this.cells[i].isCollision(x, y)) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
         this.cells[i].mouseUp(x, y);
       }
     }
   }
 
   mouseClick(x, y) {
-    for(let i = 0; i < this.cells.length; i++) {
-      if(this.cells[i].isCollision(x, y)) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
         this.cells[i].mouseClick(x, y);
       }
     }
   }
 
+  onMouseDbClick(x, y) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
+        this.cells[i].onMouseDbClick(x, y);
+      }
+    }
+  }
+
+  onkeydown(x, y, event) {
+    for (let i = 0; i < this.cells.length; i++) {
+      if (this.cells[i].isCollision(x, y)) {
+        this.cells[i].onkeydown(x, y, event);
+      }
+    }
+  }
+
   deselectAllCells() {
-    for(let i = 0; i < this.cells.length; i++) {
+    for (let i = 0; i < this.cells.length; i++) {
       this.cells[i].blur();
     }
   }
 
   updateSelection(minColIndex, maxColIndex) {
-    for(let i = minColIndex; i <= maxColIndex; i++) {
+    for (let i = minColIndex; i <= maxColIndex; i++) {
       this.cells[i].isSelected = true;
     }
   }

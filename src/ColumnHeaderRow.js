@@ -42,6 +42,7 @@ class ColumnHeaderRow extends ScreenComponent {
     for(let i = colIndex + 1; i < this.columnHeaders.length; i++) {
       this.columnHeaders[i].x += (newWidth - oldWidth);
     }
+    this.width += (newWidth - oldWidth);
   }
 
   mouseMove(x, y) {
