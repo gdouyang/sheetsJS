@@ -48,8 +48,7 @@ class ColumnHeaderRow extends ScreenComponent {
   mouseMove(x, y) {
     if(this.isResizing) {
       let xDelta = x - this.resizeStartX;
-
-      this.sheet.resizeCol(this.resizeHeader.index, this.resizeStartWidth + xDelta);
+      this.resizeElement.css('left', (this.resizeStartCssLeft + xDelta)+'px');
     }
     else {
       for(let i = 0; i < this.columnHeaders.length; i++) {
@@ -67,13 +66,30 @@ class ColumnHeaderRow extends ScreenComponent {
     if(this.resizeHeader) {
       this.resizeStartX = x;
       this.resizeStartWidth = this.resizeHeader.width;
+      this.resizeStartCssLeft = (this.sheet.scrollX + this.resizeHeader.x + this.resizeHeader.width);
       this.isResizing = true;
+      this.resizeElement = $("<div>", {
+        id: "resize-line",
+        style:
+          "position: fixed;" +
+          "left: " + this.resizeStartCssLeft + "px;" +
+          "top: " + (this.sheet.scrollY + this.resizeHeader.y) + "px;" +
+          "border: 1px solid #4285f4; height: " + (this.sheet.height) + "px;"
+      });
+      // use body mouseup event, the resize-line will cover canvas mouseup event
+      $("body").append(this.resizeElement).one('mouseup', this.mouseUp.bind(this));
+
     }
   }
 
   mouseUp(x, y) {
+    // resize column
+    let left = this.resizeElement.offset().left;
+    this.sheet.resizeCol(this.resizeHeader.index, this.resizeStartWidth + (left - this.resizeStartCssLeft));
+    // clear
     this.resizeHeader = undefined;
     this.isResizing = false;
+    this.resizeElement.remove();
   }
 
   mouseClick(x, y) {

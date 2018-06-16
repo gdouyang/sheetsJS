@@ -609,8 +609,7 @@ class ColumnHeaderRow extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["def
   mouseMove(x, y) {
     if(this.isResizing) {
       let xDelta = x - this.resizeStartX;
-
-      this.sheet.resizeCol(this.resizeHeader.index, this.resizeStartWidth + xDelta);
+      this.resizeElement.css('left', (this.resizeStartCssLeft + xDelta)+'px');
     }
     else {
       for(let i = 0; i < this.columnHeaders.length; i++) {
@@ -628,13 +627,30 @@ class ColumnHeaderRow extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["def
     if(this.resizeHeader) {
       this.resizeStartX = x;
       this.resizeStartWidth = this.resizeHeader.width;
+      this.resizeStartCssLeft = (this.sheet.scrollX + this.resizeHeader.x + this.resizeHeader.width);
       this.isResizing = true;
+      this.resizeElement = $("<div>", {
+        id: "resize-line",
+        style:
+          "position: fixed;" +
+          "left: " + this.resizeStartCssLeft + "px;" +
+          "top: " + (this.sheet.scrollY + this.resizeHeader.y) + "px;" +
+          "border: 1px solid #4285f4; height: " + (this.sheet.height) + "px;"
+      });
+      // use body mouseup event, the resize-line will cover canvas mouseup event
+      $("body").append(this.resizeElement).one('mouseup', this.mouseUp.bind(this));
+
     }
   }
 
   mouseUp(x, y) {
+    // resize column
+    let left = this.resizeElement.offset().left;
+    this.sheet.resizeCol(this.resizeHeader.index, this.resizeStartWidth + (left - this.resizeStartCssLeft));
+    // clear
     this.resizeHeader = undefined;
     this.isResizing = false;
+    this.resizeElement.remove();
   }
 
   mouseClick(x, y) {
@@ -1341,7 +1357,7 @@ class Sheet {
     // create canvas and append to target
     var canvas = document.createElement("canvas");
     target.appendChild(canvas);
-    
+
     this.context = new _Context__WEBPACK_IMPORTED_MODULE_0__["default"](canvas, {
       onMouseMove: this.mouseMove.bind(this),
       onMouseDown: this.mouseDown.bind(this),
@@ -1352,25 +1368,25 @@ class Sheet {
       width: this.width,
       height: this.height
     });
-    
+
     //Column headerX
     this.columnHeaderRow = new _ColumnHeaderRow__WEBPACK_IMPORTED_MODULE_2__["default"](this, 0, 0, this.colCount);
-    
+
     //Data rows
     this.rows = [];
-    
+
     let rowY = _constants__WEBPACK_IMPORTED_MODULE_4__["CELL_HEIGHT"];
-    
-    for(let i = 0; i < this.rowCount; i++) {
+
+    for (let i = 0; i < this.rowCount; i++) {
       this.rows.push(new _Row__WEBPACK_IMPORTED_MODULE_1__["default"](i, this, 0, rowY, this.colCount));
       rowY += _constants__WEBPACK_IMPORTED_MODULE_4__["CELL_HEIGHT"];
     }
-    
+
     this.mainLoop();
     this.scrollBar = new _ScrollBar__WEBPACK_IMPORTED_MODULE_3__["default"](target, this, this.width, this.height);
 
     window.addEventListener("keydown", (e) => {
-      if(this.selectMinRowIndex != -1 && this.selectMinColIndex != -1){
+      if (this.selectMinRowIndex != -1 && this.selectMinColIndex != -1) {
         this.rows[this.selectMinRowIndex].cells[this.selectMinColIndex].onKeydown(e);
       }
 
@@ -1383,12 +1399,16 @@ class Sheet {
   }
 
   mouseDown(x, y) {
-    if(this.columnHeaderRow.isCollision(x, y)) {
+    // when header isResizing do nothing
+    if (this.columnHeaderRow.isResizing) {
+      return;
+    }
+    if (this.columnHeaderRow.isCollision(x, y)) {
       this.columnHeaderRow.mouseDown(x, y);
     }
     else {
-      for(let i = 0; i < this.rows.length; i++) {
-        if(this.rows[i].isCollision(x, y)) {
+      for (let i = 0; i < this.rows.length; i++) {
+        if (this.rows[i].isCollision(x, y)) {
           this.rows[i].mouseDown(x, y);
         }
       }
@@ -1397,13 +1417,13 @@ class Sheet {
 
   mouseMove(x, y) {
     document.body.style.cursor = 'default';
-
-    if(this.columnHeaderRow.isCollision(x, y)) {
+    // when is header Collision or header isResizing
+    if (this.columnHeaderRow.isCollision(x, y) || this.columnHeaderRow.isResizing) {
       this.columnHeaderRow.mouseMove(x, y);
     }
     else {
-      for(let i = 0; i < this.rows.length; i++) {
-        if(this.rows[i].isCollision(x, y)) {
+      for (let i = 0; i < this.rows.length; i++) {
+        if (this.rows[i].isCollision(x, y)) {
           this.rows[i].mouseMove(x, y);
         }
       }
@@ -1411,12 +1431,16 @@ class Sheet {
   }
 
   mouseUp(x, y) {
-    if(this.columnHeaderRow.isCollision(x, y)) {
+    // when header isResizing do nothing
+    if (this.columnHeaderRow.isResizing) {
+      return;
+    }
+    if (this.columnHeaderRow.isCollision(x, y)) {
       this.columnHeaderRow.mouseUp(x, y);
     }
     else {
-      for(let i = 0; i < this.rows.length; i++) {
-        if(this.rows[i].isCollision(x, y)) {
+      for (let i = 0; i < this.rows.length; i++) {
+        if (this.rows[i].isCollision(x, y)) {
           this.rows[i].mouseUp(x, y);
         }
       }
@@ -1424,16 +1448,16 @@ class Sheet {
   }
 
   mouseClick(x, y) {
-    for(let i = 0; i < this.rows.length; i++) {
-      if(this.rows[i].isCollision(x, y)) {
+    for (let i = 0; i < this.rows.length; i++) {
+      if (this.rows[i].isCollision(x, y)) {
         this.rows[i].mouseClick(x, y);
       }
     }
   }
 
   onMouseDbClick(x, y) {
-    for(let i = 0; i < this.rows.length; i++) {
-      if(this.rows[i].isCollision(x, y)) {
+    for (let i = 0; i < this.rows.length; i++) {
+      if (this.rows[i].isCollision(x, y)) {
         this.rows[i].onMouseDbClick(x, y);
       }
     }
@@ -1441,11 +1465,11 @@ class Sheet {
 
   onScroll(dx, dy) {
     var scrollY = this.scrollY;
-    if(dy > 0) {
+    if (dy > 0) {
       scrollY -= 5 * dy;
     }
-    else if(dy < 0) {
-      if(scrollY <= -5 * -dy) {
+    else if (dy < 0) {
+      if (scrollY <= -5 * -dy) {
         scrollY -= 5 * dy;
       }
     }
@@ -1453,11 +1477,11 @@ class Sheet {
     this.scrollBar.doScroll('y', scrollY);
 
     var scrollX = this.scrollX;
-    if(dx > 0) {
+    if (dx > 0) {
       scrollX -= 5 * dx;
     }
-    else if(dx < 0) {
-      if(scrollX <= -5 * -dx) {
+    else if (dx < 0) {
+      if (scrollX <= -5 * -dx) {
         scrollX -= 5 * dx;
       }
     }
@@ -1475,10 +1499,10 @@ class Sheet {
     //Header
 
     //Rows
-    for(let i = 0; i < this.rows.length; i++) {
+    for (let i = 0; i < this.rows.length; i++) {
       const row = this.rows[i];
 
-      if(row.isVisibleOnScreen()) {
+      if (row.isVisibleOnScreen()) {
         this.rows[i].draw();
       }
     }
@@ -1494,7 +1518,7 @@ class Sheet {
     //Scroll bars
 
     //Multiselect borderWidth
-    if(this.showMultiSelect) {
+    if (this.showMultiSelect) {
       let minRow = this.rows[this.selectMinRowIndex];
       let maxRow = this.rows[this.selectMaxRowIndex];
 
@@ -1503,13 +1527,13 @@ class Sheet {
 
       let width = 0;
 
-      for(let i = this.selectMinColIndex; i <= this.selectMaxColIndex; i++) {
+      for (let i = this.selectMinColIndex; i <= this.selectMaxColIndex; i++) {
         width += minRow.cells[i].width;
       }
 
       let height = 0;
 
-      for(let i = this.selectMinRowIndex; i <= this.selectMaxRowIndex; i++) {
+      for (let i = this.selectMinRowIndex; i <= this.selectMaxRowIndex; i++) {
         height += this.rows[i].height;
       }
 
@@ -1524,26 +1548,26 @@ class Sheet {
   resizeRow(rowIndex, delta) {
     this.rows[rowIndex].height += delta;
 
-    for(let i = rowIndex + 1; i < this.rows.length; i++) {
+    for (let i = rowIndex + 1; i < this.rows.length; i++) {
       this.rows[i].y += delta;
     }
   }
 
   resizeCol(colIndex, newWidth) {
-    if(newWidth < 10) {
+    if (newWidth < 10) {
       return;
     }
-    
+
     this.columnHeaderRow.resizeCol(colIndex, newWidth);
 
-    for(let i = 0; i < this.rows.length; i++) {
+    for (let i = 0; i < this.rows.length; i++) {
       this.rows[i].resizeCol(colIndex, newWidth);
     }
     this.scrollBar.calculateScrollSize();
   }
 
   deselectAllCells() {
-    for(let i = 0; i < this.rows.length; i++) {
+    for (let i = 0; i < this.rows.length; i++) {
       this.rows[i].deselectAllCells();
     }
   }
@@ -1571,40 +1595,40 @@ class Sheet {
   }
 
   updateSelection(rowIndex, colIndex) {
-    if(this.isMultiSelecting) {
-      if(this.selectMinRowIndex == -1 || rowIndex < this.selectMinRowIndex) {
+    if (this.isMultiSelecting) {
+      if (this.selectMinRowIndex == -1 || rowIndex < this.selectMinRowIndex) {
         this.selectMinRowIndex = rowIndex;
       }
 
-      if(this.selectMaxRowIndex == -1 || rowIndex > this.selectMaxRowIndex) {
+      if (this.selectMaxRowIndex == -1 || rowIndex > this.selectMaxRowIndex) {
         this.selectMaxRowIndex = rowIndex;
       }
 
-      if(this.selectMinColIndex == -1 || colIndex < this.selectMinColIndex) {
+      if (this.selectMinColIndex == -1 || colIndex < this.selectMinColIndex) {
         this.selectMinColIndex = colIndex;
       }
 
-      if(this.selectMaxColIndex == -1 || colIndex > this.selectMaxColIndex) {
+      if (this.selectMaxColIndex == -1 || colIndex > this.selectMaxColIndex) {
         this.selectMaxColIndex = colIndex;
       }
 
       this.deselectAllCells();
 
-      for(let i = this.selectMinRowIndex; i <= this.selectMaxRowIndex; i++) {
+      for (let i = this.selectMinRowIndex; i <= this.selectMaxRowIndex; i++) {
         this.rows[i].updateSelection(this.selectMinColIndex, this.selectMaxColIndex);
       }
     }
   }
-  getLastRow(){
-    return this.rows[this.rows.length -1];
+  getLastRow() {
+    return this.rows[this.rows.length - 1];
   }
   getCell(rowIndex, colIndex) {
     return this.rows[rowIndex].getCell(colIndex);
   }
-  getContentWidth(){
+  getContentWidth() {
     return this.columnHeaderRow.width;
   }
-  getContentHeight(){
+  getContentHeight() {
     return this.getLastRow().y
   }
 }
