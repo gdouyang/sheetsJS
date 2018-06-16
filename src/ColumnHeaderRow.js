@@ -68,6 +68,7 @@ class ColumnHeaderRow extends ScreenComponent {
       this.resizeStartWidth = this.resizeHeader.width;
       this.resizeStartCssLeft = (this.sheet.scrollX + this.resizeHeader.x + this.resizeHeader.width);
       this.isResizing = true;
+      // use resizeElement where be better
       this.resizeElement = $("<div>", {
         id: "resize-line",
         style:
