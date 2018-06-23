@@ -2,12 +2,15 @@
  * ScrollBar reference jquery.scrollbar
  */
 class ScrollBar {
-  constructor(target, sheet) {
+  constructor(target, sheet, options) {
     this.wrapper = target;
     this.sheet = sheet;
     this.namespace = '.scrollbar_1';
     this.scrollx = {};
     this.scrolly = {};
+    if(options){
+      this.onScroll = options.onScroll;
+    }
 
     var S = this,
       sheet = this.sheet,
@@ -188,6 +191,8 @@ class ScrollBar {
       }
       absOffset = Math.abs(offset_);
       scrollx.scroll.bar.css(cssOffset, absOffset * scrollx.kx + 'px');
+      // callback
+      this.onScroll && this.onScroll();
     }
   }
 
