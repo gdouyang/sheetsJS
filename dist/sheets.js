@@ -351,8 +351,8 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
     if (_rowIndex != -1 && _colIndex != -1) {
       let _row = this.getRow(_rowIndex);
       if (_row) {
-        this.mouseUp();
-        _row.getCell(_colIndex) && _row.getCell(_colIndex).mouseDown();
+        _row.getCell(_colIndex) && this.sheet.startMultiSelect(_row.getCell(_colIndex));
+        this.sheet.endMultiSelect();
       }
     }
   }
