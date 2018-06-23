@@ -120,6 +120,7 @@ class ScrollBar {
       if (AreaVisible >= AreaSize) {
         scrollx.isBarVisible = false;
         scrollx.scroll.bar.hide();
+        sheet.scrollX = 0;
       } else {
         scrollx.scroll.bar.show();
         var scrollSize = scrollx.scroll.size[cssFullSize]() + (parseInt(scrollx.scroll.size.css(cssOffset), 10) || 0);

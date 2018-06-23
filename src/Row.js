@@ -83,14 +83,6 @@ class Row extends ScreenComponent {
     }
   }
 
-  mouseClick(x, y) {
-    for (let i = 0; i < this.cells.length; i++) {
-      if (this.cells[i].isCollision(x, y)) {
-        this.cells[i].mouseClick(x, y);
-      }
-    }
-  }
-
   onMouseDbClick(x, y) {
     for (let i = 0; i < this.cells.length; i++) {
       if (this.cells[i].isCollision(x, y)) {
@@ -112,11 +104,18 @@ class Row extends ScreenComponent {
       this.cells[i].blur();
     }
   }
-
-  updateSelection(minColIndex, maxColIndex) {
+  /**
+   * get the row selection size(width and height)
+   * @param {*} minColIndex 
+   * @param {*} maxColIndex 
+   */
+  getSelectionSize(minColIndex, maxColIndex) {
+    let obj = { width: 0, height: this.height };
     for (let i = minColIndex; i <= maxColIndex; i++) {
-      this.cells[i].isSelected = true;
+      //this.cells[i].isSelected = true;
+      obj.width += this.cells[i].width;
     }
+    return obj;
   }
 
   getCell(colIndex) {

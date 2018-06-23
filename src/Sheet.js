@@ -25,15 +25,17 @@ class Sheet {
     target.appendChild(canvas);
 
     this.context = new Context(canvas, {
-      onMouseMove: this.mouseMove.bind(this),
-      onMouseDown: this.mouseDown.bind(this),
-      onMouseUp: this.mouseUp.bind(this),
-      onMouseClick: this.mouseClick.bind(this),
-      onMouseDbClick: this.onMouseDbClick.bind(this),
+      //onMouseMove: this.mouseMove.bind(this),
+      //onMouseDown: this.mouseDown.bind(this),
+      // onMouseUp: this.mouseUp.bind(this),
+      // onMouseDbClick: this.onMouseDbClick.bind(this),
       onScroll: this.onScroll.bind(this),
       width: this.width,
       height: this.height
     });
+    $("body").on('mousemove', this.mouseMove.bind(this));
+    $("body").on('mousedown', this.mouseDown.bind(this));
+    $("body").on('dblclick', this.onMouseDbClick.bind(this));
 
     //Column headerX
     this.columnHeaderRow = new ColumnHeaderRow(this, 0, 0, this.colCount);
@@ -49,7 +51,11 @@ class Sheet {
     }
 
     this.mainLoop();
+
+    //Scroll bars
     this.scrollBar = new ScrollBar(target, this, this.width, this.height);
+    //Selection
+    this.createMultiSelection();
 
     window.addEventListener("keydown", (e) => {
       if (this.selectMinRowIndex != -1 && this.selectMinColIndex != -1) {
@@ -64,11 +70,13 @@ class Sheet {
     requestAnimationFrame(this.mainLoop.bind(this));
   }
 
-  mouseDown(x, y) {
+  mouseDown(event) {
     // when header isResizing do nothing
     if (this.columnHeaderRow.isResizing) {
       return;
     }
+    let x = event.clientX;
+    let y = event.clientY;
     if (this.columnHeaderRow.isCollision(x, y)) {
       this.columnHeaderRow.mouseDown(x, y);
     }
@@ -81,7 +89,9 @@ class Sheet {
     }
   }
 
-  mouseMove(x, y) {
+  mouseMove(event) {
+    let x = event.clientX;
+    let y = event.clientY;
     document.body.style.cursor = 'default';
     // when is header Collision or header isResizing
     if (this.columnHeaderRow.isCollision(x, y) || this.columnHeaderRow.isResizing) {
@@ -97,31 +107,12 @@ class Sheet {
   }
 
   mouseUp(x, y) {
-    // when header isResizing do nothing
-    if (this.columnHeaderRow.isResizing) {
-      return;
-    }
-    if (this.columnHeaderRow.isCollision(x, y)) {
-      this.columnHeaderRow.mouseUp(x, y);
-    }
-    else {
-      for (let i = 0; i < this.rows.length; i++) {
-        if (this.rows[i].isCollision(x, y)) {
-          this.rows[i].mouseUp(x, y);
-        }
-      }
-    }
+    this.endMultiSelect();
   }
 
-  mouseClick(x, y) {
-    for (let i = 0; i < this.rows.length; i++) {
-      if (this.rows[i].isCollision(x, y)) {
-        this.rows[i].mouseClick(x, y);
-      }
-    }
-  }
-
-  onMouseDbClick(x, y) {
+  onMouseDbClick(event) {
+    let x = event.clientX;
+    let y = event.clientY;
     for (let i = 0; i < this.rows.length; i++) {
       if (this.rows[i].isCollision(x, y)) {
         this.rows[i].onMouseDbClick(x, y);
@@ -181,34 +172,6 @@ class Sheet {
       fillColor: 'darkGray'
     });
 
-    //Scroll bars
-
-    //Multiselect borderWidth
-    if (this.showMultiSelect) {
-      let minRow = this.rows[this.selectMinRowIndex];
-      let maxRow = this.rows[this.selectMaxRowIndex];
-
-      let x = minRow.cells[this.selectMinColIndex].x + this.scrollX;
-      let y = minRow.y + this.scrollY;
-
-      let width = 0;
-
-      for (let i = this.selectMinColIndex; i <= this.selectMaxColIndex; i++) {
-        width += minRow.cells[i].width;
-      }
-
-      let height = 0;
-
-      for (let i = this.selectMinRowIndex; i <= this.selectMaxRowIndex; i++) {
-        height += this.rows[i].height;
-      }
-
-      this.context.drawRect(x, y, width, height, {
-        borderColor: '#4285f4',
-        fillColor: 'rgba(236, 243, 255, 0.5)',
-        borderWidth: 2
-      });
-    }
   }
 
   resizeRow(rowIndex, delta) {
@@ -238,10 +201,12 @@ class Sheet {
     }
   }
 
-  startMultiSelect() {
+  startMultiSelect(cell) {
     this.clearMultiSelect();
     this.isMultiSelecting = true;
     this.showMultiSelect = true;
+    this.multiSelectStartCell = cell;
+    this.updateSelection(cell.rowIndex, cell.index);
   }
 
   endMultiSelect() {
@@ -250,10 +215,9 @@ class Sheet {
 
   clearMultiSelect() {
     this.showMultiSelect = false;
-    this.selectMinRowIndex = -1;
-    this.selectMaxRowIndex = -1;
     this.selectMinColIndex = -1;
     this.selectMaxColIndex = -1;
+    this.multiSelectStartCell = null;
   }
 
   multiSelectSize() {
@@ -262,27 +226,36 @@ class Sheet {
 
   updateSelection(rowIndex, colIndex) {
     if (this.isMultiSelecting) {
-      if (this.selectMinRowIndex == -1 || rowIndex < this.selectMinRowIndex) {
+      console.info("" + rowIndex + "-" + colIndex)
+      this.selectMaxRowIndex = rowIndex;
+      this.selectMaxColIndex = colIndex;
+
+      //this.deselectAllCells();
+      this.selectMinRowIndex = this.multiSelectStartCell.rowIndex;
+      if (this.selectMinRowIndex > this.selectMaxRowIndex) {
+        this.selectMaxRowIndex = this.selectMinRowIndex;
         this.selectMinRowIndex = rowIndex;
       }
-
-      if (this.selectMaxRowIndex == -1 || rowIndex > this.selectMaxRowIndex) {
-        this.selectMaxRowIndex = rowIndex;
-      }
-
-      if (this.selectMinColIndex == -1 || colIndex < this.selectMinColIndex) {
+      this.selectMinColIndex = this.multiSelectStartCell.index;
+      if (this.selectMinColIndex > this.selectMaxColIndex) {
+        this.selectMaxColIndex = this.selectMinColIndex;
         this.selectMinColIndex = colIndex;
       }
 
-      if (this.selectMaxColIndex == -1 || colIndex > this.selectMaxColIndex) {
-        this.selectMaxColIndex = colIndex;
-      }
-
-      this.deselectAllCells();
-
+      let selection = { width: 0, height: 0 };
       for (let i = this.selectMinRowIndex; i <= this.selectMaxRowIndex; i++) {
-        this.rows[i].updateSelection(this.selectMinColIndex, this.selectMaxColIndex);
+
+        let selec = this.rows[i].getSelectionSize(this.selectMinColIndex, this.selectMaxColIndex);
+        selection.width = selec.width;
+        selection.height += selec.height;
       }
+      let minSelectCell = this.rows[this.selectMinRowIndex].getCell(this.selectMinColIndex);
+      this.multiSelectElement.css({
+        "left": this.scrollX + minSelectCell.x + "px",
+        "top": this.scrollY + minSelectCell.y + "px",
+        "width": (selection.width - 3) + "px",
+        "height": (selection.height - 3) + "px"
+      }).show();
     }
   }
   getLastRow() {
@@ -296,6 +269,20 @@ class Sheet {
   }
   getContentHeight() {
     return this.getLastRow().y
+  }
+  createMultiSelection() {
+    this.multiSelectElement = $("<div>", {
+      id: "multi-selection",
+      style:
+        "position: fixed;" +
+        "left: 0px;" +
+        "top: 0px;" +
+        "border: 2px solid #4285f4; display:none;" +
+        "background-color: rgba(236, 243, 255, 0.5);" +
+        "width: 0px; height: 0px;"
+    });
+    // use body mouseup event, the multi-selection will cover canvas mouseup event
+    $("body").append(this.multiSelectElement).on('mouseup', this.mouseUp.bind(this));
   }
 }
 

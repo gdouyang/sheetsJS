@@ -119,7 +119,7 @@ class Cell extends ScreenComponent {
       this.textBufferContext.clear();
 
       this.textBufferContext.drawRect(0, 0, this.width, this.height, {
-        fillColor: this.isSelected ? '#c9e2f9' : this.backGroundColor,
+        fillColor: this.backGroundColor,
         borderColor: this.borderColor,
         borderWidth: this.borderWidth
       });
@@ -147,13 +147,12 @@ class Cell extends ScreenComponent {
   draw() {
     if (!this.isTextBufferInitialized) {
       this.sheet.context.drawRect(this.sheet.scrollX + this.x, this.sheet.scrollY + this.y, this.width, this.height, {
-        fillColor: this.isSelected ? '#c9e2f9' : this.backGroundColor,
+        fillColor: this.backGroundColor,
         borderColor: this.borderColor,
         borderWidth: this.borderWidth
       });
     }
     else {
-      this.repaint();
       this.sheet.context.drawImage(this.textBufferCanvas, this.x + this.sheet.scrollX, this.y + this.sheet.scrollY, this.width, this.height);
     }
 
@@ -171,8 +170,6 @@ class Cell extends ScreenComponent {
   }
 
   blur() {
-    this.isSelected = false;
-
     if (this.isEditing) {
       this.isEditing = false;
       try {
@@ -186,8 +183,7 @@ class Cell extends ScreenComponent {
   }
 
   mouseDown(x, y) {
-    this.sheet.startMultiSelect();
-    this.sheet.updateSelection(this.rowIndex, this.index);
+    this.sheet.startMultiSelect(this);
   }
 
   mouseMove(x, y) {
@@ -202,10 +198,6 @@ class Cell extends ScreenComponent {
     }
 
     this.sheet.endMultiSelect();
-  }
-
-  mouseClick(x, y) {
-    //this.edit();
   }
 
   onMouseDbClick(x, y) {
