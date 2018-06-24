@@ -179,11 +179,75 @@ class ScrollBar {
     if (scrollx.isBarVisible) {
       var absOffset = Math.abs(offset_);
       if (d === 'x') {
+        if (this.currentColIndex == null) {
+          this.currentColIndex = 0;
+        }
+        // right
+        var tempOffset = -1;
+        if (this.sheet.scrollX > offset_) {
+          for (var i = this.currentColIndex; i < this.sheet.colCount; i++) {
+            var cell = this.sheet.rows[0].getCell(i);
+            if (absOffset >= cell.width) {
+              tempOffset = Math.abs(this.sheet.scrollX) + cell.width;
+              this.currentColIndex = i + 1;
+              break;
+            }
+          }
+        } else {
+          // left
+          if (this.currentColIndex != 0) {
+            for (var i = this.currentColIndex - 1; i >= 0; i--) {
+              var cell = this.sheet.rows[0].getCell(i);
+              if (absOffset >= cell.width) {
+                tempOffset = Math.abs(this.sheet.scrollX) - cell.width;
+                this.currentColIndex = i;
+                break;
+              }
+            }
+          }
+        }
+        if (tempOffset == -1) {
+          return;
+        }
+        absOffset = tempOffset;
+        offset_ = -tempOffset;
         if (this.sheet.getContentWidth() - absOffset < this.sheet.width) {
           offset_ = this.sheet.width - 50 - this.sheet.getContentWidth();
         }
         this.sheet.scrollX = offset_;
       } else if (d === 'y') {
+        if (this.currentRowIndex == null) {
+          this.currentRowIndex = 0;
+        }
+        // down
+        var tempOffset = -1;
+        if (this.sheet.scrollY > offset_) {
+          for (var i = this.currentRowIndex; i < this.sheet.rows.length; i++) {
+            var row = this.sheet.rows[i];
+            if (row.y - absOffset >= row.height) {
+              tempOffset = row.y - row.height;
+              this.currentRowIndex = i;
+              break;
+            }
+          }
+        } else {
+          // up
+          if (this.currentRowIndex != 0) {
+            for (var i = this.currentRowIndex - 1; i >= 0; i--) {
+              var row = this.sheet.rows[i];
+              if (row.y - absOffset >= row.height) {
+                tempOffset = row.y - row.height;
+                this.currentRowIndex = i;
+                break;
+              }
+            }
+          }
+        }
+        if (tempOffset == -1) {
+          return;
+        }
+        absOffset = tempOffset;
+        offset_ = -tempOffset;
         if ((this.sheet.getContentHeight() - absOffset) < this.sheet.height) {
           offset_ = this.sheet.height - 50 - this.sheet.getContentHeight();
         }
