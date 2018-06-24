@@ -1274,10 +1274,12 @@ class ScrollBar {
         // right
         var tempOffset = -1;
         if (this.sheet.scrollX > offset_) {
+          var totalWidth = 0;
           for (var i = this.currentColIndex; i < this.sheet.colCount; i++) {
             var cell = this.sheet.rows[0].getCell(i);
+            totalWidth += cell.width;
             if (absOffset >= cell.width) {
-              tempOffset = Math.abs(this.sheet.scrollX) + cell.width;
+              tempOffset = Math.abs(this.sheet.scrollX)+cell.width;
               this.currentColIndex = i + 1;
               break;
             }
@@ -1295,6 +1297,7 @@ class ScrollBar {
             }
           }
         }
+        console.info(absOffset)
         if (tempOffset == -1) {
           return;
         }
