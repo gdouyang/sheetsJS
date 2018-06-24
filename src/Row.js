@@ -99,11 +99,6 @@ class Row extends ScreenComponent {
     }
   }
 
-  deselectAllCells() {
-    for (let i = 0; i < this.cells.length; i++) {
-      this.cells[i].blur();
-    }
-  }
   /**
    * get the row selection size(width and height)
    * @param {*} minColIndex 

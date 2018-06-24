@@ -27,6 +27,12 @@ class Cell extends ScreenComponent {
     return this.sheet.rows[index];
   }
   registerDependentValueCell(cell) {
+    for (let i = 0; i < this.dependentCells.length; i++) {
+      let cell2 = this.dependentCells[i];
+      if (cell2.rowIndex == cell.rowIndex && cell2.index == cell.index) {
+        return;
+      }
+    }
     this.dependentCells.push(cell);
   }
 
@@ -48,7 +54,7 @@ class Cell extends ScreenComponent {
         let row = arg.match(/\d+/)[0] - 1;
 
         let cell = this.sheet.getCell(row, col);
-
+        cell.registerDependentValueCell(this);
         return cell.value;
       }
       else {
@@ -107,6 +113,7 @@ class Cell extends ScreenComponent {
     this.isNumeric = this.text && /^\d*(\.\d+)?$/.test(this.text);
 
     this.repaint();
+
   }
 
   repaint() {
@@ -141,6 +148,10 @@ class Cell extends ScreenComponent {
       else {
         this.blur();
       }
+    }
+    for (let i = 0; i < this.dependentCells.length; i++) {
+      let depCell = this.dependentCells[i];
+      depCell.updateValue(depCell.value);
     }
   }
 
@@ -206,6 +217,10 @@ class Cell extends ScreenComponent {
 
   onKeydown(e) {
     let keyCode = e.keyCode || e.which;
+    if (e.target.id == 'cell-input') {
+      this.sheet.multiSelectElement.hide();
+      return;
+    }
     let _rowIndex = -1;
     let _colIndex = -1;
     if (keyCode === 13) {
@@ -247,8 +262,8 @@ class Cell extends ScreenComponent {
   }
 
   edit() {
-    this.sheet.deselectAllCells();
-
+    this.sheet.clearEditingCell();
+    this.sheet.editingCell = this;
     this.isEditing = true;
     this.inputElement = $("<input>", {
       type: "text",
@@ -319,6 +334,7 @@ class Cell extends ScreenComponent {
       }
 
       if (_rowIndex != -1 && _colIndex != -1) {
+        this.blur();
         let _row = this.getRow(_rowIndex);
         _row && _row.getCell(_colIndex) && _row.getCell(_colIndex).edit();
       }
