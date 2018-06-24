@@ -1086,7 +1086,7 @@ class ScrollBar {
     this.namespace = '.scrollbar_1';
     this.scrollx = {};
     this.scrolly = {};
-    if(options){
+    if (options) {
       this.onScroll = options.onScroll;
     }
 
@@ -1172,7 +1172,7 @@ class ScrollBar {
 
   calculateScrollSize() {
     var sheet = this.sheet,
-        s = { x: this.scrollx, y: this.scrolly };
+      s = { x: this.scrollx, y: this.scrolly };
     // calculate init sizes
     $.each(s, function (d, scrollx) {
       $.extend(scrollx, (d == "x") ? {
@@ -1381,7 +1381,7 @@ class Sheet {
     this.mainLoop();
 
     //Scroll bars
-    this.scrollBar = new _ScrollBar__WEBPACK_IMPORTED_MODULE_3__["default"](target, this, {onScroll: this.updateSelection.bind(this)});
+    this.scrollBar = new _ScrollBar__WEBPACK_IMPORTED_MODULE_3__["default"](target, this, { onScroll: this.updateSelection.bind(this) });
     //Selection
     this.createMultiSelection();
 
@@ -1553,42 +1553,44 @@ class Sheet {
   }
 
   updateSelection(rowIndex, colIndex) {
-    if (rowIndex == null) {
-      rowIndex = this.selectMaxRowIndex;
-    }
-    if (colIndex == null) {
-      colIndex = this.selectMaxColIndex;
-    }
-    // console.info("" + rowIndex + "-" + colIndex)
-    this.selectMaxRowIndex = rowIndex;
-    this.selectMaxColIndex = colIndex;
+    if (this.multiSelectStartCell) {
+      if (rowIndex == null) {
+        rowIndex = this.selectMaxRowIndex;
+      }
+      if (colIndex == null) {
+        colIndex = this.selectMaxColIndex;
+      }
+      // console.info("" + rowIndex + "-" + colIndex)
+      this.selectMaxRowIndex = rowIndex;
+      this.selectMaxColIndex = colIndex;
 
-    this.deselectAllCells();
-    this.selectMinRowIndex = this.multiSelectStartCell.rowIndex;
-    if (this.selectMinRowIndex > this.selectMaxRowIndex) {
-      this.selectMaxRowIndex = this.selectMinRowIndex;
-      this.selectMinRowIndex = rowIndex;
-    }
-    this.selectMinColIndex = this.multiSelectStartCell.index;
-    if (this.selectMinColIndex > this.selectMaxColIndex) {
-      this.selectMaxColIndex = this.selectMinColIndex;
-      this.selectMinColIndex = colIndex;
-    }
+      this.deselectAllCells();
+      this.selectMinRowIndex = this.multiSelectStartCell.rowIndex;
+      if (this.selectMinRowIndex > this.selectMaxRowIndex) {
+        this.selectMaxRowIndex = this.selectMinRowIndex;
+        this.selectMinRowIndex = rowIndex;
+      }
+      this.selectMinColIndex = this.multiSelectStartCell.index;
+      if (this.selectMinColIndex > this.selectMaxColIndex) {
+        this.selectMaxColIndex = this.selectMinColIndex;
+        this.selectMinColIndex = colIndex;
+      }
 
-    let selection = { width: 0, height: 0 };
-    for (let i = this.selectMinRowIndex; i <= this.selectMaxRowIndex; i++) {
+      let selection = { width: 0, height: 0 };
+      for (let i = this.selectMinRowIndex; i <= this.selectMaxRowIndex; i++) {
 
-      let selec = this.rows[i].getSelectionSize(this.selectMinColIndex, this.selectMaxColIndex);
-      selection.width = selec.width;
-      selection.height += selec.height;
+        let selec = this.rows[i].getSelectionSize(this.selectMinColIndex, this.selectMaxColIndex);
+        selection.width = selec.width;
+        selection.height += selec.height;
+      }
+      let minSelectCell = this.rows[this.selectMinRowIndex].getCell(this.selectMinColIndex);
+      this.multiSelectElement.css({
+        "left": this.scrollX + minSelectCell.x + "px",
+        "top": this.scrollY + minSelectCell.y + "px",
+        "width": (selection.width - 3) + "px",
+        "height": (selection.height - 3) + "px"
+      }).show();
     }
-    let minSelectCell = this.rows[this.selectMinRowIndex].getCell(this.selectMinColIndex);
-    this.multiSelectElement.css({
-      "left": this.scrollX + minSelectCell.x + "px",
-      "top": this.scrollY + minSelectCell.y + "px",
-      "width": (selection.width - 3) + "px",
-      "height": (selection.height - 3) + "px"
-    }).show();
   }
   getLastRow() {
     return this.rows[this.rows.length - 1];

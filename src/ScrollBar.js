@@ -8,7 +8,7 @@ class ScrollBar {
     this.namespace = '.scrollbar_1';
     this.scrollx = {};
     this.scrolly = {};
-    if(options){
+    if (options) {
       this.onScroll = options.onScroll;
     }
 
@@ -94,7 +94,7 @@ class ScrollBar {
 
   calculateScrollSize() {
     var sheet = this.sheet,
-        s = { x: this.scrollx, y: this.scrolly };
+      s = { x: this.scrollx, y: this.scrolly };
     // calculate init sizes
     $.each(s, function (d, scrollx) {
       $.extend(scrollx, (d == "x") ? {
