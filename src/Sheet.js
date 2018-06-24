@@ -191,13 +191,14 @@ class Sheet {
     this.scrollBar.calculateScrollSize();
   }
 
-  deselectAllCells() {
-    for (let i = 0; i < this.rows.length; i++) {
-      this.rows[i].deselectAllCells();
+  clearEditingCell() {
+    if (this.editingCell) {
+      this.editingCell.blur();
     }
   }
 
   startMultiSelect(cell) {
+    this.clearEditingCell();
     this.clearMultiSelect();
     this.isMultiSelecting = true;
     this.showMultiSelect = true;
@@ -232,7 +233,6 @@ class Sheet {
       this.selectMaxRowIndex = rowIndex;
       this.selectMaxColIndex = colIndex;
 
-      this.deselectAllCells();
       this.selectMinRowIndex = this.multiSelectStartCell.rowIndex;
       if (this.selectMinRowIndex > this.selectMaxRowIndex) {
         this.selectMaxRowIndex = this.selectMinRowIndex;

@@ -328,6 +328,10 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
   onKeydown(e) {
     let keyCode = e.keyCode || e.which;
+    if (e.target.id == 'cell-input') {
+      this.sheet.multiSelectElement.hide();
+      return;
+    }
     let _rowIndex = -1;
     let _colIndex = -1;
     if (keyCode === 13) {
@@ -369,8 +373,8 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
   }
 
   edit() {
-    this.sheet.deselectAllCells();
-
+    this.sheet.clearEditingCell();
+    this.sheet.editingCell = this;
     this.isEditing = true;
     this.inputElement = $("<input>", {
       type: "text",
@@ -441,6 +445,7 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
       }
 
       if (_rowIndex != -1 && _colIndex != -1) {
+        this.blur();
         let _row = this.getRow(_rowIndex);
         _row && _row.getCell(_colIndex) && _row.getCell(_colIndex).edit();
       }
@@ -945,11 +950,6 @@ class Row extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
   }
 
-  deselectAllCells() {
-    for (let i = 0; i < this.cells.length; i++) {
-      this.cells[i].blur();
-    }
-  }
   /**
    * get the row selection size(width and height)
    * @param {*} minColIndex 
@@ -1534,13 +1534,14 @@ class Sheet {
     this.scrollBar.calculateScrollSize();
   }
 
-  deselectAllCells() {
-    for (let i = 0; i < this.rows.length; i++) {
-      this.rows[i].deselectAllCells();
+  clearEditingCell() {
+    if (this.editingCell) {
+      this.editingCell.blur();
     }
   }
 
   startMultiSelect(cell) {
+    this.clearEditingCell();
     this.clearMultiSelect();
     this.isMultiSelecting = true;
     this.showMultiSelect = true;
@@ -1575,7 +1576,6 @@ class Sheet {
       this.selectMaxRowIndex = rowIndex;
       this.selectMaxColIndex = colIndex;
 
-      this.deselectAllCells();
       this.selectMinRowIndex = this.multiSelectStartCell.rowIndex;
       if (this.selectMinRowIndex > this.selectMaxRowIndex) {
         this.selectMaxRowIndex = this.selectMinRowIndex;
