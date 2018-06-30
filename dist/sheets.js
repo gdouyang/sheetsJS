@@ -1483,7 +1483,6 @@ class Sheet {
   }
 
   mouseDown(event) {
-    if (event.which == 3) { this.contextMenu.show(event); return; }
     if (this.contextMenu.isCollision(event)) { return };
     // when header isResizing do nothing
     if (this.columnHeaderRow.isResizing) { return; }
@@ -1498,6 +1497,8 @@ class Sheet {
           this.rows[i].mouseDown(x, y);
         }
       }
+      // if right btn click show context menu
+      if (event.which == 3) { this.contextMenu.show(event); }
     }
   }
 
