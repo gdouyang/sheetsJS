@@ -836,6 +836,75 @@ class Context {
 
 /***/ }),
 
+/***/ "./src/ContextMenu.js":
+/*!****************************!*\
+  !*** ./src/ContextMenu.js ***!
+  \****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * ScrollBar reference jquery.scrollbar
+ */
+class ContextMenu {
+  constructor(sheet) {
+    this.sheet = sheet;
+    this.container = $('body');
+    this.menu = this._init();
+    $('body').on('contextmenu', function (e) { e.preventDefault(); })
+  }
+
+  _init() {
+    var html = [
+      '<div class="context-menu">',
+      '<ul>',
+      '<li data-type="copy"><a >复制</a></li>',
+      '<li data-type="paste"><a >粘贴</a></li>',
+      '</ul>',
+      '</div>'
+    ].join('');
+    var self = this;
+    var menu = $(html).hide().appendTo(this.container);
+    menu.find('[data-type]').each(function (index, domEle) {
+      let type = $(domEle).attr('data-type');
+      $(domEle).on('click', self.menuClick.bind(self, type))
+    });
+    return menu;;
+  }
+
+  show(event) {
+    let x = event.clientX;
+    let y = event.clientY;
+    this.menu.css({
+      "left": x + "px",
+      "top": y + "px"
+    }).show();
+    event.preventDefault();
+  }
+  hide() {
+    this.menu.hide();
+  }
+  menuClick(type) {
+    console.log(type);
+    this.hide();
+  }
+  isCollision(event){
+    var v = '.context-menu';
+    if($( event.target ).closest( $(v) ).length){
+      return true;
+    }
+    this.hide();
+    return false;
+  }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (ContextMenu);
+
+
+/***/ }),
+
 /***/ "./src/Row.js":
 /*!********************!*\
   !*** ./src/Row.js ***!
@@ -1340,7 +1409,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Row__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Row */ "./src/Row.js");
 /* harmony import */ var _ColumnHeaderRow__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ColumnHeaderRow */ "./src/ColumnHeaderRow.js");
 /* harmony import */ var _ScrollBar__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ScrollBar */ "./src/ScrollBar.js");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./src/constants.js");
+/* harmony import */ var _ContextMenu__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./ContextMenu */ "./src/ContextMenu.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./src/constants.js");
+
 
 
 
@@ -1382,17 +1453,19 @@ class Sheet {
     //Data rows
     this.rows = [];
 
-    let rowY = _constants__WEBPACK_IMPORTED_MODULE_4__["CELL_HEIGHT"];
+    let rowY = _constants__WEBPACK_IMPORTED_MODULE_5__["CELL_HEIGHT"];
 
     for (let i = 0; i < this.rowCount; i++) {
       this.rows.push(new _Row__WEBPACK_IMPORTED_MODULE_1__["default"](i, this, 0, rowY, this.colCount));
-      rowY += _constants__WEBPACK_IMPORTED_MODULE_4__["CELL_HEIGHT"];
+      rowY += _constants__WEBPACK_IMPORTED_MODULE_5__["CELL_HEIGHT"];
     }
 
     this.mainLoop();
 
     //Scroll bars
     this.scrollBar = new _ScrollBar__WEBPACK_IMPORTED_MODULE_3__["default"](target, this, { onScroll: this.updateSelection.bind(this) });
+    // contextMenu
+    this.contextMenu = new _ContextMenu__WEBPACK_IMPORTED_MODULE_4__["default"](this);
     //Selection
     this.createMultiSelection();
 
@@ -1410,10 +1483,10 @@ class Sheet {
   }
 
   mouseDown(event) {
+    if (event.which == 3) { this.contextMenu.show(event); return; }
+    if (this.contextMenu.isCollision(event)) { return };
     // when header isResizing do nothing
-    if (this.columnHeaderRow.isResizing) {
-      return;
-    }
+    if (this.columnHeaderRow.isResizing) { return; }
     let x = event.clientX;
     let y = event.clientY;
     if (this.columnHeaderRow.isCollision(x, y)) {
@@ -1505,7 +1578,7 @@ class Sheet {
 
     //Column headers
     this.columnHeaderRow.draw();
-    this.context.drawRect(0, 0, _constants__WEBPACK_IMPORTED_MODULE_4__["ROW_HEADER_WIDTH"], _constants__WEBPACK_IMPORTED_MODULE_4__["CELL_HEIGHT"], {
+    this.context.drawRect(0, 0, _constants__WEBPACK_IMPORTED_MODULE_5__["ROW_HEADER_WIDTH"], _constants__WEBPACK_IMPORTED_MODULE_5__["CELL_HEIGHT"], {
       borderColor: 'black',
       borderWidth: 1,
       fillColor: 'darkGray'

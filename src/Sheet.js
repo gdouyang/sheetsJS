@@ -2,6 +2,7 @@ import Context from './Context';
 import Row from './Row';
 import ColumnHeaderRow from './ColumnHeaderRow';
 import ScrollBar from './ScrollBar';
+import ContextMenu from './ContextMenu';
 import { CELL_WIDTH, CELL_HEIGHT, ROW_HEADER_WIDTH } from './constants';
 
 class Sheet {
@@ -50,6 +51,8 @@ class Sheet {
 
     //Scroll bars
     this.scrollBar = new ScrollBar(target, this, { onScroll: this.updateSelection.bind(this) });
+    // contextMenu
+    this.contextMenu = new ContextMenu(this);
     //Selection
     this.createMultiSelection();
 
@@ -67,10 +70,10 @@ class Sheet {
   }
 
   mouseDown(event) {
+    if (event.which == 3) { this.contextMenu.show(event); return; }
+    if (this.contextMenu.isCollision(event)) { return };
     // when header isResizing do nothing
-    if (this.columnHeaderRow.isResizing) {
-      return;
-    }
+    if (this.columnHeaderRow.isResizing) { return; }
     let x = event.clientX;
     let y = event.clientY;
     if (this.columnHeaderRow.isCollision(x, y)) {
