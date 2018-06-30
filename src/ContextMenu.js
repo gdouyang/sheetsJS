@@ -13,8 +13,8 @@ class ContextMenu {
     var html = [
       '<div class="context-menu">',
       '<ul>',
-      '<li data-type="copy"><a >复制</a></li>',
-      '<li data-type="paste"><a >粘贴</a></li>',
+      '<li ><a data-type="copy">复制</a></li>',
+      '<li ><a data-type="paste">粘贴</a></li>',
       '</ul>',
       '</div>'
     ].join('');
@@ -22,12 +22,17 @@ class ContextMenu {
     var menu = $(html).hide().appendTo(this.container);
     menu.find('[data-type]').each(function (index, domEle) {
       let type = $(domEle).attr('data-type');
-      $(domEle).on('click', self.menuClick.bind(self, type))
+      $(domEle).on('click', self.menuClick.bind(self, type, $(domEle)))
     });
     return menu;;
   }
 
   show(event) {
+    if(!this.copyCell){
+      this.menu.find('[data-type="paste"]').addClass('disabled')
+    }else{
+      this.menu.find('[data-type="paste"]').removeClass('disabled')
+    }
     let x = event.clientX;
     let y = event.clientY;
     this.menu.css({
@@ -39,8 +44,13 @@ class ContextMenu {
   hide() {
     this.menu.hide();
   }
-  menuClick(type) {
+  menuClick(type, domEle) {
     console.log(type);
+    if(type == 'copy'){
+      this.copyCell = this.sheet.multiSelectStartCell;
+    }else if(type == 'paste' && !domEle.hasClass('disabled')){
+      this.sheet.multiSelectStartCell.updateValue(this.copyCell.value);
+    }
     this.hide();
   }
   isCollision(event){

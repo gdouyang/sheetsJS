@@ -389,8 +389,6 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
     $("body").append(this.inputElement);
 
-    let dirty = false;
-
     this.inputElement.val(this.value);
 
     this.inputElement.keydown((e) => {
@@ -415,53 +413,11 @@ class Cell extends _ScreenComponent__WEBPACK_IMPORTED_MODULE_0__["default"] {
         _colIndex = this.index + (e.shiftKey ? -1 : 1);
         e.preventDefault();
       }
-      else if (keyCode === 37) {
-        //Left arrow
-        if (!dirty) {
-          _rowIndex = this.rowIndex;
-          _colIndex = this.index - 1;
-        }
-      }
-      else if (keyCode === 39) {
-        //Right arrow
-        if (!dirty) {
-          _rowIndex = this.rowIndex;
-          _colIndex = this.index + 1;
-        }
-      }
-      else if (keyCode === 38) {
-        //Up arrow
-        _rowIndex = this.rowIndex - 1;
-        _colIndex = this.index;
-      }
-      else if (keyCode === 40) {
-        //Down arrow
-        _rowIndex = this.rowIndex + 1;
-        _colIndex = this.index;
-      }
-      else if ((keyCode === 46 /* Delete */ || keyCode === 8 /* Backspace */) && !dirty) {
-        this.inputElement.val(undefined);
-        this.updateValue(undefined);
-      }
 
       if (_rowIndex != -1 && _colIndex != -1) {
         this.blur();
         let _row = this.getRow(_rowIndex);
         _row && _row.getCell(_colIndex) && _row.getCell(_colIndex).edit();
-      }
-    });
-
-    this.inputElement.keyup((e) => {
-      let keyCode = e.keyCode || e.which;
-
-      if (keyCode !== 13 && keyCode !== 9 && keyCode !== 37 && keyCode !== 39 && keyCode !== 38 && keyCode !== 40) {
-        dirty = true;
-
-        // this.updateValue(this.inputElement.val());
-
-        // if (this.isNumeric) {
-        //   this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
-        // }
       }
     });
 
@@ -860,8 +816,8 @@ class ContextMenu {
     var html = [
       '<div class="context-menu">',
       '<ul>',
-      '<li data-type="copy"><a >复制</a></li>',
-      '<li data-type="paste"><a >粘贴</a></li>',
+      '<li ><a data-type="copy">复制</a></li>',
+      '<li ><a data-type="paste">粘贴</a></li>',
       '</ul>',
       '</div>'
     ].join('');
@@ -869,12 +825,17 @@ class ContextMenu {
     var menu = $(html).hide().appendTo(this.container);
     menu.find('[data-type]').each(function (index, domEle) {
       let type = $(domEle).attr('data-type');
-      $(domEle).on('click', self.menuClick.bind(self, type))
+      $(domEle).on('click', self.menuClick.bind(self, type, $(domEle)))
     });
     return menu;;
   }
 
   show(event) {
+    if(!this.copyCell){
+      this.menu.find('[data-type="paste"]').addClass('disabled')
+    }else{
+      this.menu.find('[data-type="paste"]').removeClass('disabled')
+    }
     let x = event.clientX;
     let y = event.clientY;
     this.menu.css({
@@ -886,8 +847,13 @@ class ContextMenu {
   hide() {
     this.menu.hide();
   }
-  menuClick(type) {
+  menuClick(type, domEle) {
     console.log(type);
+    if(type == 'copy'){
+      this.copyCell = this.sheet.multiSelectStartCell;
+    }else if(type == 'paste' && !domEle.hasClass('disabled')){
+      this.sheet.multiSelectStartCell.updateValue(this.copyCell.value);
+    }
     this.hide();
   }
   isCollision(event){

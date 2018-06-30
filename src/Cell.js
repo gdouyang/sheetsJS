@@ -278,8 +278,6 @@ class Cell extends ScreenComponent {
 
     $("body").append(this.inputElement);
 
-    let dirty = false;
-
     this.inputElement.val(this.value);
 
     this.inputElement.keydown((e) => {
@@ -304,53 +302,11 @@ class Cell extends ScreenComponent {
         _colIndex = this.index + (e.shiftKey ? -1 : 1);
         e.preventDefault();
       }
-      else if (keyCode === 37) {
-        //Left arrow
-        if (!dirty) {
-          _rowIndex = this.rowIndex;
-          _colIndex = this.index - 1;
-        }
-      }
-      else if (keyCode === 39) {
-        //Right arrow
-        if (!dirty) {
-          _rowIndex = this.rowIndex;
-          _colIndex = this.index + 1;
-        }
-      }
-      else if (keyCode === 38) {
-        //Up arrow
-        _rowIndex = this.rowIndex - 1;
-        _colIndex = this.index;
-      }
-      else if (keyCode === 40) {
-        //Down arrow
-        _rowIndex = this.rowIndex + 1;
-        _colIndex = this.index;
-      }
-      else if ((keyCode === 46 /* Delete */ || keyCode === 8 /* Backspace */) && !dirty) {
-        this.inputElement.val(undefined);
-        this.updateValue(undefined);
-      }
 
       if (_rowIndex != -1 && _colIndex != -1) {
         this.blur();
         let _row = this.getRow(_rowIndex);
         _row && _row.getCell(_colIndex) && _row.getCell(_colIndex).edit();
-      }
-    });
-
-    this.inputElement.keyup((e) => {
-      let keyCode = e.keyCode || e.which;
-
-      if (keyCode !== 13 && keyCode !== 9 && keyCode !== 37 && keyCode !== 39 && keyCode !== 38 && keyCode !== 40) {
-        dirty = true;
-
-        // this.updateValue(this.inputElement.val());
-
-        // if (this.isNumeric) {
-        //   this.inputElement.css("text-align", this.isNumeric ? "right" : "left")
-        // }
       }
     });
 
