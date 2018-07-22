@@ -746,12 +746,12 @@ class Context {
       e.preventDefault();
     };
 
-    this.ctx.canvas.onmousewheel = function (e) {
-      if (options.useCanvasScroll) {
-        options.onScroll(e.deltaX, e.deltaY);
-        e.preventDefault();
-      }
-    };
+    // this.ctx.canvas.onmousewheel = function (e) {
+    //   if (options.useCanvasScroll) {
+    //     options.onScroll(e.deltaX, e.deltaY);
+    //     e.preventDefault();
+    //   }
+    // };
 
     // this.textBufferCanvas = document.createElement('canvas');
     // this.textBufferContext = this.textBufferCanvas.getContext('2d');
@@ -1101,18 +1101,63 @@ class ScrollBar {
       this.onScroll = options.onScroll;
     }
 
+    this.init();
+
+    this.calculateScrollSize();
+  }
+
+  init() {
     var S = this,
       sheet = this.sheet,
       namespace = this.namespace,
       s = { x: this.scrollx, y: this.scrolly };
+
+    var handleMouseScroll = function (event) {
+      S.isVerticalScroll(event) ?
+        s.y.isBarVisible && s.y.mousewheel(event) :
+        s.x.isBarVisible && s.x.mousewheel(event);
+    };
+
+    $(document).on('MozMousePixelScroll.scrollbar_0', handleMouseScroll);
+    $(document).on('mousewheel.scrollbar_0', handleMouseScroll);
+
     // init scrollbars & recalculate sizes
     $.each(s, function (d, scrollx) {
 
+      var scrollToValue = 0;
       if (!scrollx.scroll) {
 
         scrollx.scroll = S._getScroll('scroll' + d).addClass('scroll-' + d);
 
         scrollx.scroll.addClass('scroll-element_arrows_visible');
+
+        scrollx.mousewheel = function (event) {
+
+          if (!scrollx.isBarVisible || (d === 'x' && S.isVerticalScroll(event))) {
+            return true;
+          }
+          if (d === 'y' && !S.isVerticalScroll(event)) {
+            s.x.mousewheel(event);
+            return true;
+          }
+
+          var delta = event.originalEvent.wheelDelta * -1 || event.originalEvent.detail;
+          var maxScrollValue = scrollx.size - scrollx.visible - scrollx.offset;
+
+          if ((delta > 0 && scrollToValue < maxScrollValue) || (delta < 0 && scrollToValue > 0)) {
+            console.info("scrollToValue="+scrollToValue+",delta="+delta);
+            scrollToValue = scrollToValue + delta;
+            if (scrollToValue < 0)
+              scrollToValue = 0;
+            if (scrollToValue > maxScrollValue)
+              scrollToValue = maxScrollValue;
+
+            S.doScroll(d, scrollToValue);
+          }
+
+          event.preventDefault();
+          return false;
+        };
 
         // handle arrows & scroll inner mousedown event
         scrollx.scroll.find('.scroll-arrow, .scroll-element_track')
@@ -1146,7 +1191,7 @@ class ScrollBar {
               scrollToValue = data.scrollPostion + (scrollToValue / scrollx.kx);
             }
 
-            var scrollToValue = stepScrolling ? -(data.scrollPostion + scrollStep) : scrollToValue;
+            scrollToValue = stepScrolling ? (data.scrollPostion + scrollStep) : scrollToValue;
 
             S.doScroll(d, scrollToValue);
 
@@ -1161,14 +1206,17 @@ class ScrollBar {
 
           var eventPosition = event[(d === 'x') ? 'pageX' : 'pageY'];
           var initOffset = (d === 'x') ? sheet.scrollX : sheet.scrollY;
-
+          //console.info('initOffset=' + initOffset)
           scrollx.scroll.addClass('scroll-draggable');
 
           $(document).on('mousemove' + namespace, function (event) {
-            var diff = parseInt((event[(d === 'x') ? 'pageX' : 'pageY'] - eventPosition) / scrollx.kx, 10);
-            var offset_ = initOffset - diff;
+            var movePos = event[(d === 'x') ? 'pageX' : 'pageY'];
+            //console.info('movePos='+movePos +',eventPosition='+eventPosition)
+            var diff = parseInt((movePos - eventPosition) / scrollx.kx, 10);
+            var offset_ = Math.abs(initOffset) + diff;
 
             S.doScroll(d, offset_);
+            scrollToValue = offset_;
           });
 
           return S._handleMouseDown(function () {
@@ -1177,8 +1225,6 @@ class ScrollBar {
         });
       }
     });
-
-    this.calculateScrollSize();
   }
 
   calculateScrollSize() {
@@ -1260,7 +1306,8 @@ class ScrollBar {
   }
 
   doScroll(d, offset_) {
-    if (offset_ > 0) {
+    console.info("offset_=" + offset_)
+    if (offset_ < 0) {
       offset_ = 0;
     }
     var cssOffset = (d === 'x') ? 'left' : 'top';
@@ -1268,82 +1315,15 @@ class ScrollBar {
     if (scrollx.isBarVisible) {
       var absOffset = Math.abs(offset_);
       if (d === 'x') {
-        if (this.currentColIndex == null) {
-          this.currentColIndex = 0;
-        }
-        // right
-        var tempOffset = -1;
-        if (this.sheet.scrollX > offset_) {
-          var totalWidth = 0;
-          for (var i = this.currentColIndex; i < this.sheet.colCount; i++) {
-            var cell = this.sheet.rows[0].getCell(i);
-            totalWidth += cell.width;
-            if (absOffset >= cell.width) {
-              tempOffset = Math.abs(this.sheet.scrollX)+cell.width;
-              this.currentColIndex = i + 1;
-              break;
-            }
-          }
-        } else {
-          // left
-          if (this.currentColIndex != 0) {
-            for (var i = this.currentColIndex - 1; i >= 0; i--) {
-              var cell = this.sheet.rows[0].getCell(i);
-              if (absOffset >= cell.width) {
-                tempOffset = Math.abs(this.sheet.scrollX) - cell.width;
-                this.currentColIndex = i;
-                break;
-              }
-            }
-          }
-        }
-        console.info(absOffset)
-        if (tempOffset == -1) {
-          return;
-        }
-        absOffset = tempOffset;
-        offset_ = -tempOffset;
         if (this.sheet.getContentWidth() - absOffset < this.sheet.width) {
-          offset_ = this.sheet.width - 50 - this.sheet.getContentWidth();
+          offset_ = this.sheet.getContentWidth() - this.sheet.width + 50;
         }
-        this.sheet.scrollX = offset_;
+        this.sheet.scrollX = -offset_;
       } else if (d === 'y') {
-        if (this.currentRowIndex == null) {
-          this.currentRowIndex = 0;
-        }
-        // down
-        var tempOffset = -1;
-        if (this.sheet.scrollY > offset_) {
-          for (var i = this.currentRowIndex; i < this.sheet.rows.length; i++) {
-            var row = this.sheet.rows[i];
-            if (row.y - absOffset >= row.height) {
-              tempOffset = row.y - row.height;
-              this.currentRowIndex = i;
-              break;
-            }
-          }
-        } else {
-          // up
-          if (this.currentRowIndex != 0) {
-            for (var i = this.currentRowIndex - 1; i >= 0; i--) {
-              var row = this.sheet.rows[i];
-              if (row.y - absOffset >= row.height) {
-                tempOffset = row.y - row.height;
-                this.currentRowIndex = i;
-                break;
-              }
-            }
-          }
-        }
-        if (tempOffset == -1) {
-          return;
-        }
-        absOffset = tempOffset;
-        offset_ = -tempOffset;
         if ((this.sheet.getContentHeight() - absOffset) < this.sheet.height) {
-          offset_ = this.sheet.height - 50 - this.sheet.getContentHeight();
+          offset_ = this.sheet.getContentHeight() - this.sheet.height + 50;
         }
-        this.sheet.scrollY = offset_;
+        this.sheet.scrollY = -offset_;
       }
       absOffset = Math.abs(offset_);
       scrollx.scroll.bar.css(cssOffset, absOffset * scrollx.kx + 'px');
@@ -1435,13 +1415,14 @@ class Sheet {
     target.appendChild(canvas);
 
     this.context = new _Context__WEBPACK_IMPORTED_MODULE_0__["default"](canvas, {
-      onScroll: this.onScroll.bind(this),
+      //onScroll: this.onScroll.bind(this),
       width: this.width,
       height: this.height
     });
     $("body").on('mousemove', this.mouseMove.bind(this));
     $("body").on('mousedown', this.mouseDown.bind(this));
     $("body").on('dblclick', this.onMouseDbClick.bind(this));
+    //$("body").on('scroll', this.onScroll.bind(this));
 
     //Column headerX
     this.columnHeaderRow = new _ColumnHeaderRow__WEBPACK_IMPORTED_MODULE_2__["default"](this, 0, 0, this.colCount);

@@ -59,12 +59,12 @@ class Context {
       e.preventDefault();
     };
 
-    this.ctx.canvas.onmousewheel = function (e) {
-      if (options.useCanvasScroll) {
-        options.onScroll(e.deltaX, e.deltaY);
-        e.preventDefault();
-      }
-    };
+    // this.ctx.canvas.onmousewheel = function (e) {
+    //   if (options.useCanvasScroll) {
+    //     options.onScroll(e.deltaX, e.deltaY);
+    //     e.preventDefault();
+    //   }
+    // };
 
     // this.textBufferCanvas = document.createElement('canvas');
     // this.textBufferContext = this.textBufferCanvas.getContext('2d');

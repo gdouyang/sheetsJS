@@ -25,13 +25,14 @@ class Sheet {
     target.appendChild(canvas);
 
     this.context = new Context(canvas, {
-      onScroll: this.onScroll.bind(this),
+      //onScroll: this.onScroll.bind(this),
       width: this.width,
       height: this.height
     });
     $("body").on('mousemove', this.mouseMove.bind(this));
     $("body").on('mousedown', this.mouseDown.bind(this));
     $("body").on('dblclick', this.onMouseDbClick.bind(this));
+    //$("body").on('scroll', this.onScroll.bind(this));
 
     //Column headerX
     this.columnHeaderRow = new ColumnHeaderRow(this, 0, 0, this.colCount);
