@@ -18,6 +18,477 @@
     cursor: pointer;
     background-color: #eae8e8;
 }
+
 .context-menu ul li [data-type].disabled {
     color: gray;
+}
+
+::-webkit-scrollbar {
+    height: 16px;
+    overflow: visible;
+    width: 16px
+}
+
+::-webkit-scrollbar-button {
+    height: 0;
+    width: 0
+}
+
+::-webkit-scrollbar-track {
+    background-clip: padding-box;
+    border: solid transparent;
+    border-width: 0 0 0 4px
+}
+
+::-webkit-scrollbar-track:horizontal {
+    border-width: 4px 0 0
+}
+
+::-webkit-scrollbar-track:hover {
+    background-color: rgba(0, 0, 0, .05);
+    box-shadow: inset 1px 0 0 rgba(0, 0, 0, .1)
+}
+
+::-webkit-scrollbar-track:horizontal:hover {
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, .1)
+}
+
+::-webkit-scrollbar-track:active {
+    background-color: rgba(0, 0, 0, .05);
+    box-shadow: inset 1px 0 0 rgba(0, 0, 0, .14), inset -1px 0 0 rgba(0, 0, 0, .07)
+}
+
+::-webkit-scrollbar-track:horizontal:active {
+    box-shadow: inset 0 1px 0 rgba(0, 0, 0, .14), inset 0 -1px 0 rgba(0, 0, 0, .07)
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, .2);
+    background-clip: padding-box;
+    border: solid transparent;
+    border-width: 1px 1px 1px 6px;
+    min-height: 28px;
+    padding: 100px 0 0;
+    box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1), inset 0 -1px 0 rgba(0, 0, 0, .07)
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+    border-width: 6px 1px 1px;
+    padding: 0 0 0 100px;
+    box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1), inset -1px 0 0 rgba(0, 0, 0, .07)
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, .4);
+    box-shadow: inset 1px 1px 1px rgba(0, 0, 0, .25)
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.35)
+}
+
+.scroll-container {
+    position: absolute;
+    overflow: auto;
+    border-width: 0;
+    padding: 0;
+    margin: 0;
+    z-index: 1;
+    top: 0;
+    left: 0
+}
+
+.native-scrollbar {
+    overflow: auto;
+    position: absolute;
+    border-width: 0;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0
+}
+
+.scroll-container::-webkit-scrollbar:vertical {
+    width: 12px
+}
+
+.scroll-container::-webkit-scrollbar:horizontal {
+    height: 12px
+}
+
+.scroll-container::-webkit-scrollbar-button:start {
+    display: none
+}
+
+.scroll-container::-webkit-scrollbar-button:end {
+    display: block
+}
+
+.scroll-container::-webkit-scrollbar-button {
+    border: 1px solid #d9d9d9
+}
+
+.scroll-container::-webkit-scrollbar-button:horizontal {
+    border-width: 1px 0 0 0
+}
+
+.scroll-container-ltr::-webkit-scrollbar-button:vertical {
+    border-width: 0 0 0 1px
+}
+
+.scroll-container-rtl::-webkit-scrollbar-button:vertical {
+    border-width: 0 1px 0 0
+}
+
+.scroll-container::-webkit-scrollbar-button:horizontal:increment {
+    background: no-repeat url("../dist/waffle_sprite53.png") -663px -13px;
+    width: 15px;
+    padding-left: 1px;
+    background-clip: border-box;
+    border: 1px solid #d9d9d9;
+    border-width: 1px 0 0 0;
+    box-shadow: none;
+    background-color: #f8f8f8
+}
+
+.scroll-container::-webkit-scrollbar-button:horizontal:increment:hover {
+    background: no-repeat url("../dist/waffle_sprite53.png") -395px -62px
+}
+
+.scroll-container::-webkit-scrollbar-button:horizontal:increment:active {
+    background: no-repeat url("../dist/waffle_sprite53.png") -679px -13px
+}
+
+.scroll-container::-webkit-scrollbar-button:horizontal:decrement {
+    border-left: 1px solid #d9d9d9;
+    border-right: 1px solid #d9d9d9;
+    background: no-repeat url("../dist/waffle_sprite53.png") -283px -62px;
+    width: 17px
+}
+
+.scroll-container::-webkit-scrollbar-button:horizontal:hover {
+    background: no-repeat url("../dist/waffle_sprite53.png") -145px -70px
+}
+
+.scroll-container::-webkit-scrollbar-button:horizontal:active {
+    background: no-repeat url("../dist/waffle_sprite53.png") -552px 0
+}
+
+.scroll-container::-webkit-scrollbar-button:vertical:increment {
+    padding-top: 1px;
+    background: no-repeat url("../dist/waffle_sprite53.png") -531px -24px;
+    height: 15px
+}
+
+.scroll-container::-webkit-scrollbar-button:vertical:increment:hover {
+    background: no-repeat url("../dist/waffle_sprite53.png") -570px -42px
+}
+
+.scroll-container::-webkit-scrollbar-button:vertical:increment:active {
+    background: no-repeat url("../dist/waffle_sprite53.png") -83px -46px
+}
+
+.scroll-container::-webkit-scrollbar-button:vertical:decrement {
+    border-top: 1px solid #d9d9d9;
+    border-bottom: 1px solid #d9d9d9;
+    background: no-repeat url("../dist/waffle_sprite53.png") -631px -27px;
+    height: 17px
+}
+
+.scroll-container::-webkit-scrollbar-button:vertical:decrement:hover {
+    background: no-repeat url("../dist/waffle_sprite53.png") -180px -58px
+}
+
+.scroll-container::-webkit-scrollbar-button:vertical:decrement:active {
+    background: no-repeat url("../dist/waffle_sprite53.png") -776px -28px
+}
+
+.scroll-container::-webkit-scrollbar-track:vertical {
+    background-clip: border-box;
+    border: 1px solid #d9d9d9;
+    box-shadow: none;
+    background-color: #f8f8f8
+}
+
+.scroll-container-ltr::-webkit-scrollbar-track:vertical {
+    border-width: 0 0 0 1px
+}
+
+.scroll-container-rtl::-webkit-scrollbar-track:vertical {
+    border-width: 0 1px 0 0
+}
+
+.scroll-container::-webkit-scrollbar-track:horizontal {
+    background-clip: border-box;
+    border: 1px solid #d9d9d9;
+    border-width: 1px 0 0 0;
+    box-shadow: none;
+    background-color: #f8f8f8
+}
+
+.scroll-container::-webkit-scrollbar-track:hover {
+    background: none;
+    box-shadow: none
+}
+
+.scroll-container::-webkit-scrollbar-track:horizontal:hover,
+.scroll-container::-webkit-scrollbar-track:vertical:hover {
+    box-shadow: none;
+    background-clip: border-box;
+    border: 1px solid #d9d9d9;
+    border-width: 1px 0 0 0;
+    box-shadow: none;
+    background-color: #f8f8f8
+}
+
+.scroll-container::-webkit-scrollbar-track:horizontal:hover {
+    border-width: 1px 0 0 0
+}
+
+.scroll-container::-webkit-scrollbar-track:vertical:hover {
+    border-width: 0 1px 0 1px
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, .2);
+    background-clip: padding-box;
+    border: solid transparent;
+    min-height: 28px;
+    padding: none;
+    box-shadow: none;
+    border-width: 1px 1px 1px 1px
+}
+
+.scroll-container::-webkit-scrollbar-thumb:horizontal {
+    box-shadow: none;
+    border-width: 2px 1px 1px 1px
+}
+
+.scroll-container::-webkit-scrollbar-thumb:vertical {
+    padding: 1px 1px 1px 1px;
+    box-shadow: none
+}
+
+.scroll-container-ltr::-webkit-scrollbar-thumb:vertical {
+    border-width: 1px 1px 1px 2px
+}
+
+.scroll-container-rtl::-webkit-scrollbar-thumb:vertical {
+    border-width: 1px 2px 1px 1px
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    box-shadow: none
+}
+
+.scroll-container::-webkit-scrollbar-corner {
+    border: 1px solid #d9d9d9
+}
+
+.scroll-container-rtl::-webkit-scrollbar-corner {
+    border-width: 1px 1px 0 0
+}
+
+.scroll-container-ltr::-webkit-scrollbar-corner {
+    border-width: 1px 0 0 1px
+}
+
+.native-scrollbar::-webkit-scrollbar:vertical {
+    width: 12px
+}
+
+.native-scrollbar::-webkit-scrollbar:horizontal {
+    height: 12px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:start {
+    display: none
+}
+
+.native-scrollbar::-webkit-scrollbar-button:end {
+    display: block
+}
+
+.native-scrollbar::-webkit-scrollbar-button {
+    border: 1px solid #d9d9d9;
+}
+
+.native-scrollbar::-webkit-scrollbar-button:horizontal {
+    border-width: 1px 0 0 0
+}
+
+.native-scrollbar-ltr::-webkit-scrollbar-button:vertical {
+    border-width: 0 0 0 1px
+}
+
+.native-scrollbar-rtl::-webkit-scrollbar-button:vertical {
+    border-width: 0 1px 0 0
+}
+
+.native-scrollbar::-webkit-scrollbar-button:horizontal:increment {
+    background: no-repeat url("../dist/waffle_sprite53.png") -663px -13px;
+    width: 15px;
+    padding-left: 1px;
+    background-clip: border-box;
+    border: 1px solid #d9d9d9;
+    border-width: 1px 0 0 0;
+    box-shadow: none;
+    background-color: #f8f8f8
+}
+
+.native-scrollbar::-webkit-scrollbar-button:horizontal:increment:hover {
+    background: no-repeat url("../dist/waffle_sprite53.png") -395px -62px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:horizontal:increment:active {
+    background: no-repeat url("../dist/waffle_sprite53.png") -679px -13px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:horizontal:decrement {
+    border-left: 1px solid #d9d9d9;
+    border-right: 1px solid #d9d9d9;
+    background: no-repeat url("../dist/waffle_sprite53.png") -283px -62px;
+    width: 17px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:horizontal:hover {
+    background: no-repeat url("../dist/waffle_sprite53.png") -145px -70px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:horizontal:active {
+    background: no-repeat url("../dist/waffle_sprite53.png") -552px 0
+}
+
+.native-scrollbar::-webkit-scrollbar-button:vertical:increment {
+    padding-top: 1px;
+    background: no-repeat url("../dist/waffle_sprite53.png") -531px -24px;
+    height: 15px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:vertical:increment:hover {
+    background: no-repeat url("../dist/waffle_sprite53.png") -570px -42px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:vertical:increment:active {
+    background: no-repeat url("../dist/waffle_sprite53.png") -83px -46px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:vertical:decrement {
+    border-top: 1px solid #d9d9d9;
+    border-bottom: 1px solid #d9d9d9;
+    background: no-repeat url("../dist/waffle_sprite53.png") -631px -27px;
+    height: 17px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:vertical:decrement:hover {
+    background: no-repeat url("../dist/waffle_sprite53.png") -180px -58px
+}
+
+.native-scrollbar::-webkit-scrollbar-button:vertical:decrement:active {
+    background: no-repeat url("../dist/waffle_sprite53.png") -776px -28px
+}
+
+.native-scrollbar::-webkit-scrollbar-track:vertical {
+    background-clip: border-box;
+    border: 1px solid #d9d9d9;
+    box-shadow: none;
+    background-color: #f8f8f8
+}
+
+.native-scrollbar-ltr::-webkit-scrollbar-track:vertical {
+    border-width: 0 0 0 1px
+}
+
+.native-scrollbar-rtl::-webkit-scrollbar-track:vertical {
+    border-width: 0 1px 0 0
+}
+
+.native-scrollbar::-webkit-scrollbar-track:horizontal {
+    background-clip: border-box;
+    border: 1px solid #d9d9d9;
+    border-width: 1px 0 0 0;
+    box-shadow: none;
+    background-color: #f8f8f8
+}
+
+.native-scrollbar::-webkit-scrollbar-track:hover {
+    background: none;
+    box-shadow: none
+}
+
+.native-scrollbar::-webkit-scrollbar-track:horizontal:hover,
+.native-scrollbar::-webkit-scrollbar-track:vertical:hover {
+    box-shadow: none;
+    background-clip: border-box;
+    border: 1px solid #d9d9d9;
+    border-width: 1px 0 0 0;
+    box-shadow: none;
+    background-color: #f8f8f8
+}
+
+.native-scrollbar::-webkit-scrollbar-track:horizontal:hover {
+    border-width: 1px 0 0 0
+}
+
+.native-scrollbar::-webkit-scrollbar-track:vertical:hover {
+    border-width: 0 1px 0 1px
+}
+
+.native-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, .2);
+    background-clip: padding-box;
+    border: solid transparent;
+    min-height: 28px;
+    padding: none;
+    box-shadow: none;
+    border-width: 1px 1px 1px 1px
+}
+
+.native-scrollbar::-webkit-scrollbar-thumb:horizontal {
+    box-shadow: none;
+    border-width: 2px 1px 1px 1px
+}
+
+.native-scrollbar::-webkit-scrollbar-thumb:vertical {
+    padding: 1px 1px 1px 1px;
+    box-shadow: none
+}
+
+.native-scrollbar-ltr::-webkit-scrollbar-thumb:vertical {
+    border-width: 1px 1px 1px 2px
+}
+
+.native-scrollbar-rtl::-webkit-scrollbar-thumb:vertical {
+    border-width: 1px 2px 1px 1px
+}
+
+.native-scrollbar::-webkit-scrollbar-thumb:hover {
+    box-shadow: none
+}
+
+.native-scrollbar::-webkit-scrollbar-corner {
+    border: 6px solid #d9d9d9;
+}
+
+.native-scrollbar-rtl::-webkit-scrollbar-corner {
+    border-width: 1px 1px 0 0
+}
+
+.native-scrollbar-ltr::-webkit-scrollbar-corner {
+    border-width: 4px 0 0 1px;
+}
+
+.native-scrollbar-x {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    border: 1px solid #d9d9d9;
+    border-width: 0 1px 0 0
+}
+
+.native-scrollbar-y {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    border: 1px solid #d9d9d9;
+    border-width: 0 0 1px 0
 }

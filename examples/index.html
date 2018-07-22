@@ -3,7 +3,6 @@
 
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <link rel="stylesheet" href="../dist/scrollbar/jquery.scrollbar.css">
   <link rel="stylesheet" href="style.css">
   <script type="text/javascript" src="../dist/jquery-3.2.0.min.js"></script>
   <script type="text/javascript" src="../dist/numeric.min.js"></script>
@@ -20,14 +19,14 @@
 </head>
 
 <body>
-  <div id="sheetsDiv" class="scrollbar-chrome" style="position: relative;">
+  <div id="sheetsDiv" style="position: relative;">
   </div>
   <script type="text/javascript">
     var sheet = new sheets.Sheet(document.getElementById("sheetsDiv"), {
-      width: $('#sheetsDiv').width(),
-      height: $(window).height() - 10,
+      width: $('#sheetsDiv').width() - 20,
+      height: $(window).height() - 21,
       rowCount: 200,
-      colCount: 10
+      colCount: 110
     });
   </script>
 </body>
